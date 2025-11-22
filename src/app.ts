@@ -19,7 +19,7 @@ import userRoutes from "./modules/users/user.routes.js";
 export const createApp = (): Application => {
   const app = express();
 
-  // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxy
+  // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxyyy
   app.set("trust proxy", 1);
 
   // Rate limiter - membatasi request per IP
