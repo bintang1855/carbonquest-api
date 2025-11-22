@@ -4,7 +4,7 @@ const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
-      title: "CarbonQuest Gamification API",
+      title: "CarbonQuest API 2",
       version: "1.0.0",
       description:
         "A comprehensive gamification API built with Express, TypeScript, and Prisma",
@@ -135,5 +135,4 @@ const options: swaggerJsdoc.Options = {
     "./dist/app.js",
   ],
 };
-
 export const swaggerSpec = swaggerJsdoc(options);
