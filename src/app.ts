@@ -19,6 +19,9 @@ import userRoutes from "./modules/users/user.routes.js";
 export const createApp = (): Application => {
   const app = express();
 
+  // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxy
+  app.set("trust proxy", 1);
+
   // Rate limiter - membatasi request per IP
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 menit
@@ -29,6 +32,17 @@ export const createApp = (): Application => {
     },
     standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
     legacyHeaders: false, // Disable `X-RateLimit-*` headers
+    handler: (req, res) => {
+      console.log(`Rate limit exceeded for IP: ${req.ip}`);
+      res.status(429).json({
+        success: false,
+        message: "Too many requests from this IP, please try again later.",
+      });
+    },
+    skip: (req) => {
+      console.log(`Request from IP: ${req.ip}`);
+      return false;
+    },
   });
 
   // Rate limiter khusus untuk auth (lebih ketat)
