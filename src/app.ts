@@ -1,5 +1,6 @@
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -18,7 +19,32 @@ import userRoutes from "./modules/users/user.routes.js";
 export const createApp = (): Application => {
   const app = express();
 
+  // Rate limiter - membatasi request per IP
+  const limiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 menit
+    max: 10, // max 10 request per 1 menit per IP
+    message: {
+      success: false,
+      message: "Too many requests from this IP, please try again later.",
+    },
+    standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
+    legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  });
+
+  // Rate limiter khusus untuk auth (lebih ketat)
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 menit
+    max: 5, // max 5 login attempts per 15 menit per IP
+    message: {
+      success: false,
+      message: "Too many login attempts from this IP, please try again later.",
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
   // Global middleware
+  app.use(limiter); // Apply rate limit ke semua routes
   app.use(cors());
   app.use(express.json());
 
@@ -64,7 +90,7 @@ export const createApp = (): Application => {
   );
 
   // Mount routes
-  app.use("/auth", authRoutes);
+  app.use("/auth", authLimiter, authRoutes); // Apply rate limit khusus untuk auth
   app.use("/users", userRoutes);
   app.use("/organizations", organizationRoutes);
   app.use("/missions", missionRoutes);

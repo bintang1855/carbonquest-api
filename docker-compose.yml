@@ -13,6 +13,14 @@ services:
       - .:/app
       - /app/node_modules
 
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: carbonquest-tunnel
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiMWE0YTM1MGQ3M2EyYTQ5ZmNjNjdhMmE0NDc4Zjk1NDAiLCJ0IjoiNTQ3NmE4OTYtOGM2Ni00NWFjLTk5NGItNDlmZTE3NmZhMjZjIiwicyI6Ik1qWTNNRGxpTldJdE9XVmxNUzAwWXpJeUxUazJNell0TkRoaE4ySXlOakJoTW1NNSJ9
+    restart: unless-stopped
+
   db:
     image: postgres:16-alpine
     container_name: carbonquest-db
