@@ -16,7 +16,7 @@ import userMissionRoutes from "./modules/user-missions/user-mission.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
 export const createApp = () => {
     const app = express();
-    // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxy
+    // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxyyy
     app.set("trust proxy", 1);
     // Rate limiter - membatasi request per IP
     const limiter = rateLimit({
