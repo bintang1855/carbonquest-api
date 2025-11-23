@@ -14,7 +14,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: "https://carbon-api.bintangap.my.id",
+        url: "https://carbonquest-api.bintangap.my.id",
         description: "Development server",
       },
     ],
