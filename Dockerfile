@@ -7,10 +7,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# copy source code, prisma schema & tsconfig
-COPY prisma ./prisma
-COPY src ./src
-COPY tsconfig.json ./
+# copy ALL source code (including routes with OpenAPI docs)
+COPY . .
 
 # generate prisma client
 RUN npx prisma generate

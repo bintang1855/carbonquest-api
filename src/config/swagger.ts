@@ -148,11 +148,11 @@ const options: swaggerJsdoc.Options = {
     ],
   },
   apis: [
-    "./src/modules/**/*.routes.ts",
-    "./src/modules/**/*.routes.js",
     "./dist/modules/**/*.routes.js",
-    "./src/app.ts",
     "./dist/app.js",
+    // Fallback untuk development
+    "./src/modules/**/*.routes.ts",
+    "./src/app.ts",
   ],
 };
 export const swaggerSpec = swaggerJsdoc(options);
