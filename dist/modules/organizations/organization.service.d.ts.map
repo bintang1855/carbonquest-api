@@ -1,1 +1,0 @@
-{"version":3,"file":"organization.service.d.ts","sourceRoot":"","sources":["../../../src/modules/organizations/organization.service.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,sBAAsB,CAAC;AAGvD,qBAAa,mBAAmB;IAC9B,OAAO,CAAC,UAAU,CAAyB;;IAMrC,mBAAmB,IAAI,OAAO,CAAC,IAAI,CAAC,eAAe,EAAE,UAAU,CAAC,EAAE,CAAC;CAI1E"}
