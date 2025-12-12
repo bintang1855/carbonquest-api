@@ -23,7 +23,7 @@ export class AuthService {
   async registerUser(
     data: CreateUserDTO
   ): Promise<{ user: Omit<UserDTO, "password">; token: string }> {
-    const { name, email, password } = data;
+    const { name, last_name, birth_date, email, phone, password } = data;
 
     if (!email || !password || !name) {
       throw new AppError("Name, email, and password are required", 400);
@@ -37,7 +37,10 @@ export class AuthService {
     const hashed = await bcrypt.hash(password, 10);
     const user = await this.userRepository.create({
       name,
+      last_name,
+      birth_date: birth_date ? new Date(birth_date) : undefined,
       email,
+      phone,
       password: hashed,
     });
 

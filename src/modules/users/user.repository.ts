@@ -24,6 +24,13 @@ export class UserRepository {
     });
   }
 
+  async updatePassword(id: number, hashedPassword: string): Promise<void> {
+    await prisma.users.update({
+      where: { id_user: id },
+      data: { password: hashedPassword },
+    });
+  }
+
   async getLeaderboard(): Promise<any[]> {
     // Get all users with their points from sessions and user_missions
     const users = await prisma.users.findMany({

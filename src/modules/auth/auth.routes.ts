@@ -32,11 +32,21 @@ const authService = new AuthService();
  *             properties:
  *               name:
  *                 type: string
- *                 example: John Doe
+ *                 example: John
+ *               last_name:
+ *                 type: string
+ *                 example: Doe
+ *               birth_date:
+ *                 type: string
+ *                 format: date
+ *                 example: 1990-01-15
  *               email:
  *                 type: string
  *                 format: email
  *                 example: john@example.com
+ *               phone:
+ *                 type: string
+ *                 example: 081234567890
  *               password:
  *                 type: string
  *                 format: password

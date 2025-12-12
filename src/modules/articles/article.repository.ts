@@ -25,4 +25,20 @@ export class ArticleRepository {
       },
     });
   }
+
+  async update(
+    id: number,
+    data: Partial<CreateArticleDTO>
+  ): Promise<ArticleDTO> {
+    return await prisma.articles.update({
+      where: { id_article: id },
+      data,
+    });
+  }
+
+  async delete(id: number): Promise<void> {
+    await prisma.articles.delete({
+      where: { id_article: id },
+    });
+  }
 }

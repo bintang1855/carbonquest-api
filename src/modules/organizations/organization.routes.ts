@@ -42,4 +42,66 @@ router.get(
   }) as any
 );
 
+/**
+ * @openapi
+ * /organizations/password:
+ *   put:
+ *     tags:
+ *       - Organizations
+ *     summary: Update organization password
+ *     description: Update the password for the authenticated organization
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - oldPassword
+ *               - newPassword
+ *             properties:
+ *               oldPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: OldPassword123
+ *               newPassword:
+ *                 type: string
+ *                 format: password
+ *                 example: NewPassword123
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       400:
+ *         description: Invalid old password
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - organization role required
+ *       404:
+ *         description: Organization not found
+ */
+router.put(
+  "/password",
+  authMiddleware("org") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+      await organizationService.updatePassword(
+        req.user.sub,
+        oldPassword,
+        newPassword
+      );
+      ResponseUtil.success(res, "Password updated successfully", null);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
 export default router;

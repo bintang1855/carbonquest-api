@@ -130,4 +130,187 @@ router.get(
   }) as any
 );
 
+/**
+ * @openapi
+ * /missions/{id}:
+ *   get:
+ *     tags:
+ *       - Missions
+ *     summary: Get mission by ID
+ *     description: Retrieve a single mission by its ID
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Mission ID
+ *     responses:
+ *       200:
+ *         description: Mission retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Mission not found
+ */
+router.get(
+  "/:id",
+  authMiddleware() as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id);
+      const mission = await missionService.getMissionById(id);
+      ResponseUtil.success(res, "Mission retrieved successfully", mission);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /missions/{id}:
+ *   put:
+ *     tags:
+ *       - Missions
+ *     summary: Update a mission
+ *     description: Update an existing mission (organization only)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Mission ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               tags:
+ *                 type: string
+ *               desc:
+ *                 type: string
+ *               coverImage:
+ *                 type: string
+ *                 format: binary
+ *               photoCaption:
+ *                 type: string
+ *               authorName:
+ *                 type: string
+ *               authorRole:
+ *                 type: string
+ *               points:
+ *                 type: integer
+ *               highlights:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Mission updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - organization role required
+ *       404:
+ *         description: Mission not found
+ */
+router.put(
+  "/:id",
+  authMiddleware("org") as any,
+  upload.single("coverImage") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id);
+      const data: Partial<CreateMissionDTO> = {
+        title: req.body.title,
+        tags: req.body.tags,
+        desc: req.body.desc || req.body.description,
+        photo_caption: req.body.photoCaption,
+        author_name: req.body.authorName,
+        author_role: req.body.authorRole,
+        points: req.body.points ? parseInt(req.body.points) : undefined,
+        highlights: req.body.highlights,
+      };
+
+      // Add cover image URL if file was uploaded
+      if (req.file) {
+        data.cover_image = `/uploads/${req.file.filename}`;
+      }
+
+      // Remove undefined fields
+      Object.keys(data).forEach(
+        (key) =>
+          data[key as keyof typeof data] === undefined &&
+          delete data[key as keyof typeof data]
+      );
+
+      const mission = await missionService.updateMission(id, data);
+      ResponseUtil.success(res, "Mission updated successfully", mission);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /missions/{id}:
+ *   delete:
+ *     tags:
+ *       - Missions
+ *     summary: Delete a mission
+ *     description: Delete an existing mission (organization only)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Mission ID
+ *     responses:
+ *       200:
+ *         description: Mission deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - organization role required
+ *       404:
+ *         description: Mission not found
+ */
+router.delete(
+  "/:id",
+  authMiddleware("org") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id);
+      await missionService.deleteMission(id);
+      ResponseUtil.success(res, "Mission deleted successfully", null);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
 export default router;

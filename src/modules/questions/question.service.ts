@@ -15,4 +15,24 @@ export class QuestionService {
   async createQuestion(data: CreateQuestionDTO) {
     return await this.repository.create(data);
   }
+
+  async getQuestionById(id: number) {
+    const question = await this.repository.findById(id);
+    if (!question) {
+      throw new Error("Question not found");
+    }
+    return question;
+  }
+
+  async updateQuestion(id: number, data: Partial<CreateQuestionDTO>) {
+    // Check if question exists
+    await this.getQuestionById(id);
+    return await this.repository.update(id, data);
+  }
+
+  async deleteQuestion(id: number) {
+    // Check if question exists
+    await this.getQuestionById(id);
+    await this.repository.delete(id);
+  }
 }

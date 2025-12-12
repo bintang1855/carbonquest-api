@@ -20,4 +20,20 @@ export class QuestionRepository {
       data,
     });
   }
+
+  async update(
+    id: number,
+    data: Partial<CreateQuestionDTO>
+  ): Promise<QuestionDTO> {
+    return await prisma.questions.update({
+      where: { id_question: id },
+      data,
+    });
+  }
+
+  async delete(id: number): Promise<void> {
+    await prisma.questions.delete({
+      where: { id_question: id },
+    });
+  }
 }

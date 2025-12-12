@@ -138,4 +138,193 @@ router.get(
   }) as any
 );
 
+/**
+ * @openapi
+ * /articles/{id}:
+ *   get:
+ *     tags:
+ *       - Articles
+ *     summary: Get article by ID
+ *     description: Retrieve a single article by its ID
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Article ID
+ *     responses:
+ *       200:
+ *         description: Article retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Article not found
+ */
+router.get(
+  "/:id",
+  authMiddleware() as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id);
+      const article = await articleService.getArticleById(id);
+      ResponseUtil.success(res, "Article retrieved successfully", article);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /articles/{id}:
+ *   put:
+ *     tags:
+ *       - Articles
+ *     summary: Update an article
+ *     description: Update an existing article (organization only)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Article ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               topic:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *               coverImage:
+ *                 type: string
+ *                 format: binary
+ *               photoCaption:
+ *                 type: string
+ *               photoCredit:
+ *                 type: string
+ *               authorName:
+ *                 type: string
+ *               authorRole:
+ *                 type: string
+ *               place:
+ *                 type: string
+ *               highlights:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Article updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - organization role required
+ *       404:
+ *         description: Article not found
+ */
+router.put(
+  "/:id",
+  authMiddleware("org") as any,
+  upload.single("coverImage") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id);
+      const data: Partial<CreateArticleDTO> = {
+        title: req.body.title,
+        topic: req.body.topic,
+        description: req.body.description,
+        content: req.body.content,
+        photo_caption: req.body.photoCaption,
+        photo_credit: req.body.photoCredit,
+        author_name: req.body.authorName,
+        author_role: req.body.authorRole,
+        place: req.body.place,
+        highlights: req.body.highlights,
+      };
+
+      // Add cover image URL if file was uploaded
+      if (req.file) {
+        data.cover_image = `/uploads/${req.file.filename}`;
+      }
+
+      // Remove undefined fields
+      Object.keys(data).forEach(
+        (key) =>
+          data[key as keyof typeof data] === undefined &&
+          delete data[key as keyof typeof data]
+      );
+
+      const article = await articleService.updateArticle(id, data);
+      ResponseUtil.success(res, "Article updated successfully", article);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /articles/{id}:
+ *   delete:
+ *     tags:
+ *       - Articles
+ *     summary: Delete an article
+ *     description: Delete an existing article (organization only)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Article ID
+ *     responses:
+ *       200:
+ *         description: Article deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - organization role required
+ *       404:
+ *         description: Article not found
+ */
+router.delete(
+  "/:id",
+  authMiddleware("org") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = parseInt(req.params.id);
+      await articleService.deleteArticle(id);
+      ResponseUtil.success(res, "Article deleted successfully", null);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
 export default router;

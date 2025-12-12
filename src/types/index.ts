@@ -30,13 +30,19 @@ export interface AuthenticatedRequest<
 export interface UserDTO {
   id_user: number;
   name: string;
+  last_name?: string | null;
+  birth_date?: Date | null;
   email: string;
+  phone?: string | null;
   password?: string; // Optional in responses
 }
 
 export interface CreateUserDTO {
   name: string;
+  last_name?: string;
+  birth_date?: string | Date;
   email: string;
+  phone?: string;
   password: string;
 }
 

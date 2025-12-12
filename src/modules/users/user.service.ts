@@ -1,6 +1,7 @@
 import { AppError } from "../../middleware/error.middleware.js";
 import { UserDTO } from "../../types/index.js";
 import { UserRepository } from "./user.repository.js";
+import bcrypt from "bcryptjs";
 
 export class UserService {
   private repository: UserRepository;
@@ -26,5 +27,33 @@ export class UserService {
 
   async getLeaderboard(): Promise<any[]> {
     return await this.repository.getLeaderboard();
+  }
+
+  async updatePassword(
+    id: number,
+    oldPassword: string,
+    newPassword: string
+  ): Promise<void> {
+    const user = await this.repository.findById(id);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    if (!user.password) {
+      throw new AppError("Invalid user data", 500);
+    }
+
+    // Verify old password
+    const isValidPassword = await bcrypt.compare(oldPassword, user.password);
+    if (!isValidPassword) {
+      throw new AppError("Invalid old password", 400);
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await this.repository.updatePassword(id, hashedPassword);
   }
 }
