@@ -55,6 +55,69 @@ router.get(
 
 /**
  * @openapi
+ * /users/leaderboard:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get leaderboard
+ *     description: Retrieve user leaderboard sorted by total points (sessions + missions)
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Leaderboard retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               allOf:
+ *                 - $ref: '#/components/schemas/ApiResponse'
+ *                 - type: object
+ *                   properties:
+ *                     data:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id_user:
+ *                             type: integer
+ *                             example: 1
+ *                           name:
+ *                             type: string
+ *                             example: John Doe
+ *                           email:
+ *                             type: string
+ *                             example: john@example.com
+ *                           total_points:
+ *                             type: integer
+ *                             example: 350
+ *                           session_points:
+ *                             type: integer
+ *                             example: 150
+ *                           mission_points:
+ *                             type: integer
+ *                             example: 200
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+  "/leaderboard",
+  authMiddleware() as any,
+  (async (
+    _req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const leaderboard = await userService.getLeaderboard();
+      ResponseUtil.success(res, "Leaderboard retrieved successfully", leaderboard);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
  * /users/{id}:
  *   get:
  *     tags:

@@ -23,4 +23,8 @@ export class UserService {
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
+
+  async getLeaderboard(): Promise<any[]> {
+    return await this.repository.getLeaderboard();
+  }
 }
