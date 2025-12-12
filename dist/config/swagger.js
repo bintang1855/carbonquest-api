@@ -3,7 +3,7 @@ const options = {
     definition: {
         openapi: "3.0.0",
         info: {
-            title: "CarbonQuest API 2",
+            title: "CarbonQuest API Documentation",
             version: "1.0.0",
             description: "A comprehensive gamification API built with Express, TypeScript, and Prisma",
             contact: {
