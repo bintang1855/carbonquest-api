@@ -109,7 +109,11 @@ router.get(
   ): Promise<void> => {
     try {
       const leaderboard = await userService.getLeaderboard();
-      ResponseUtil.success(res, "Leaderboard retrieved successfully", leaderboard);
+      ResponseUtil.success(
+        res,
+        "Leaderboard retrieved successfully",
+        leaderboard
+      );
     } catch (err) {
       next(err);
     }
