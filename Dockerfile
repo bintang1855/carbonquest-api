@@ -13,11 +13,8 @@ COPY . .
 # generate prisma client
 RUN npx prisma generate
 
-# build TypeScript to JavaScript
-RUN npm run build
-
 # expose port 4000 (port di dalam container)
 EXPOSE 4000
 
-# start API from compiled dist folder
-CMD ["node", "dist/server.js"]
+# start API directly from TypeScript source using tsx
+CMD ["npx", "tsx", "src/server.ts"]
