@@ -45,14 +45,27 @@ export interface CreateOrganizationDTO {
 export interface MissionDTO {
     id_mission: number;
     title: string;
+    tags?: string | null;
     desc?: string | null;
+    cover_image?: string | null;
+    photo_caption?: string | null;
+    author_name?: string | null;
+    author_role?: string | null;
     points?: number | null;
+    highlights?: string | null;
+    date_created?: Date | null;
     id_creator: number;
 }
 export interface CreateMissionDTO {
     title: string;
+    tags?: string;
     desc?: string;
+    cover_image?: string;
+    photo_caption?: string;
+    author_name?: string;
+    author_role?: string;
     points?: number;
+    highlights?: string;
 }
 export interface UserMissionDTO {
     id_working: number;
@@ -112,12 +125,30 @@ export interface UpdateSessionDTO {
 export interface ArticleDTO {
     id_article: number;
     title: string;
+    topic?: string | null;
+    description?: string | null;
     content?: string | null;
+    cover_image?: string | null;
+    photo_caption?: string | null;
+    photo_credit?: string | null;
+    author_name?: string | null;
+    author_role?: string | null;
+    place?: string | null;
+    highlights?: string | null;
     date_created?: Date | null;
     id_author: number;
 }
 export interface CreateArticleDTO {
     title: string;
+    topic?: string;
+    description?: string;
     content?: string;
+    cover_image?: string;
+    photo_caption?: string;
+    photo_credit?: string;
+    author_name?: string;
+    author_role?: string;
+    place?: string;
+    highlights?: string;
 }
 //# sourceMappingURL=index.d.ts.map

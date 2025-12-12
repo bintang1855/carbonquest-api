@@ -2,6 +2,7 @@ import cors from "cors";
 import express, { Application, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
+import path from "path";
 import { swaggerSpec } from "./config/swagger.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 
@@ -25,7 +26,7 @@ export const createApp = (): Application => {
   // Rate limiter - membatasi request per IP
   const limiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 menit
-    max: 10, // max 10 request per 1 menit per IP
+    max: 10000, // max 10 request per 1 menit per IP
     message: {
       success: false,
       message: "Too many requests from this IP, please try again later.",
@@ -61,6 +62,9 @@ export const createApp = (): Application => {
   app.use(limiter); // Apply rate limit ke semua routes
   app.use(cors());
   app.use(express.json());
+
+  // Serve static files (untuk akses gambar yang diupload)
+  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
   // Health check endpoint
   /**

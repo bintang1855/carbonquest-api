@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
+import { upload } from "../../middleware/upload.middleware.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { ArticleService } from "./article.service.js";
 const router = Router();
@@ -11,13 +12,13 @@ const articleService = new ArticleService();
  *     tags:
  *       - Articles
  *     summary: Create a new article
- *     description: Create a new article (organization only)
+ *     description: Create a new article with optional cover image (organization only)
  *     security:
  *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -26,9 +27,37 @@ const articleService = new ArticleService();
  *               title:
  *                 type: string
  *                 example: Climate Change and You
- *               content:
+ *               topic:
+ *                 type: string
+ *                 example: climate
+ *               description:
  *                 type: string
  *                 example: Understanding the impact of climate change...
+ *               content:
+ *                 type: string
+ *                 example: Full article content here...
+ *               coverImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Cover image file
+ *               photoCaption:
+ *                 type: string
+ *                 example: A view of melting glaciers
+ *               photoCredit:
+ *                 type: string
+ *                 example: John Doe Photography
+ *               authorName:
+ *                 type: string
+ *                 example: Jane Smith
+ *               authorRole:
+ *                 type: string
+ *                 example: Editor
+ *               place:
+ *                 type: string
+ *                 example: Bandung, Indonesia
+ *               highlights:
+ *                 type: string
+ *                 example: Key points about climate action
  *     responses:
  *       201:
  *         description: Article created successfully
@@ -37,9 +66,24 @@ const articleService = new ArticleService();
  *       403:
  *         description: Forbidden - organization role required
  */
-router.post("/", authMiddleware("org"), (async (req, res, next) => {
+router.post("/", authMiddleware("org"), upload.single("coverImage"), (async (req, res, next) => {
     try {
-        const data = req.body;
+        const data = {
+            title: req.body.title,
+            topic: req.body.topic,
+            description: req.body.description,
+            content: req.body.content,
+            photo_caption: req.body.photoCaption,
+            photo_credit: req.body.photoCredit,
+            author_name: req.body.authorName,
+            author_role: req.body.authorRole,
+            place: req.body.place,
+            highlights: req.body.highlights,
+        };
+        // Add cover image URL if file was uploaded
+        if (req.file) {
+            data.cover_image = `/uploads/${req.file.filename}`;
+        }
         const article = await articleService.createArticle(data, req.user.sub);
         ResponseUtil.created(res, "Article created successfully", article);
     }

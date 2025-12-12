@@ -12,6 +12,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - uploads_data:/app/uploads # Persistent storage untuk uploads
 
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -34,3 +35,4 @@ services:
 
 volumes:
   db_data:
+  uploads_data:

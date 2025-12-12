@@ -1,6 +1,6 @@
 # CarbonQuest Gamification API
 
-A comprehensive gamification API built with **Express.js**, **TypeScript**, **Prisma**, and **PostgreSQL**. This API follows a clean **Model-Service-Repository** architecture pattern with standardized responses and complete Swagger documentation.
+A comprehensive gamification API built with **Express.js**, **TypeScript**, **Prisma**, and **PostgreSQL**. This API follows a clean **Model-Service-Repository** architecture pattern with standardized responses, file upload support, and complete Swagger documentation.
 
 ## 🚀 Features
 
@@ -8,9 +8,12 @@ A comprehensive gamification API built with **Express.js**, **TypeScript**, **Pr
 - ✅ **Model-Service-Repository Architecture** - Clean separation of concerns
 - ✅ **Prisma ORM** - Type-safe database operations
 - ✅ **JWT Authentication** - Secure user and organization authentication
+- ✅ **File Upload** - Multer integration for image uploads
+- ✅ **Rate Limiting** - Protection against abuse (1000 req/min global, 5 req/15min for auth)
 - ✅ **Standardized API Responses** - Consistent response format across all endpoints
 - ✅ **Swagger Documentation** - Interactive API documentation at `/docs`
 - ✅ **Role-Based Access Control** - User and Organization roles with protected endpoints
+- ✅ **Docker Support** - Full containerization with Docker Compose
 - ✅ **Error Handling** - Centralized error handling middleware
 
 ## 📁 Project Structure

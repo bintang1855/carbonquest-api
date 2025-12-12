@@ -73,11 +73,18 @@ model Sessions {
 }
 
 model Missions {
-  id_mission Int      @id @default(autoincrement())
-  title      String   @db.VarChar(100)
-  desc       String?  @db.Text
-  points     Int?
-  id_creator Int      // FK ke Organization.id_organisasi
+  id_mission    Int      @id @default(autoincrement())
+  title         String   @db.VarChar(255)
+  tags          String?  @db.VarChar(255)
+  desc          String?  @db.Text
+  cover_image   String?  @db.VarChar(255)
+  photo_caption String?  @db.VarChar(255)
+  author_name   String?  @db.VarChar(100)
+  author_role   String?  @db.VarChar(50)
+  points        Int?
+  highlights    String?  @db.Text
+  date_created  DateTime? @default(now())
+  id_creator    Int      // FK ke Organization.id_organisasi
 
   creator      Organization  @relation(fields: [id_creator], references: [id_organisasi])
   user_mission User_Missions[]
@@ -100,11 +107,20 @@ model User_Missions {
 }
 
 model Articles {
-  id_article   Int      @id @default(autoincrement())
-  title        String   @db.VarChar(100)
-  content      String?  @db.Text
-  date_created DateTime?
-  id_author    Int      // FK ke Organization.id_organisasi
+  id_article    Int      @id @default(autoincrement())
+  title         String   @db.VarChar(255)
+  topic         String?  @db.VarChar(100)
+  description   String?  @db.Text
+  content       String?  @db.Text
+  cover_image   String?  @db.VarChar(255)
+  photo_caption String?  @db.VarChar(255)
+  photo_credit  String?  @db.VarChar(100)
+  author_name   String?  @db.VarChar(100)
+  author_role   String?  @db.VarChar(50)
+  place         String?  @db.VarChar(100)
+  highlights    String?  @db.Text
+  date_created  DateTime? @default(now())
+  id_author     Int      // FK ke Organization.id_organisasi
 
   author Organization @relation(fields: [id_author], references: [id_organisasi])
 
