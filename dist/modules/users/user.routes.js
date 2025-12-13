@@ -77,6 +77,10 @@ router.get("/", authMiddleware("org"), (async (_req, res, next) => {
  *                           email:
  *                             type: string
  *                             example: john@example.com
+ *                           profile_image:
+ *                             type: string
+ *                             example: /uploads/profile-123.jpg
+ *                             nullable: true
  *                           total_points:
  *                             type: integer
  *                             example: 350
@@ -231,6 +235,10 @@ router.put("/password", authMiddleware("user"), (async (req, res, next) => {
  *               phone:
  *                 type: string
  *                 example: +1234567890
+ *               profile_image:
+ *                 type: string
+ *                 example: /uploads/profile-123.jpg
+ *                 description: Profile image URL (use PUT /users/:id/profile-image to upload)
  *     responses:
  *       200:
  *         description: User updated successfully
