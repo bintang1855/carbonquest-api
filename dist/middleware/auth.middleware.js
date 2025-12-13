@@ -19,7 +19,6 @@ export const authMiddleware = (requiredRole) => {
             next();
         }
         catch (err) {
-            console.error(err);
             ResponseUtil.unauthorized(res, "Invalid token");
             return;
         }

@@ -29,7 +29,6 @@ export const authMiddleware = (
 
       next();
     } catch (err) {
-      console.error(err);
       ResponseUtil.unauthorized(res, "Invalid token");
       return;
     }
