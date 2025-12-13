@@ -83,7 +83,12 @@ router.post("/", authMiddleware("org"), upload.single("coverImage"), (async (req
         // Add cover image URL if file was uploaded
         if (req.file) {
             data.cover_image = `/uploads/${req.file.filename}`;
+            console.log("File uploaded:", req.file.filename);
         }
+        else {
+            console.log("No file uploaded");
+        }
+        console.log("Article data before save:", data);
         const article = await articleService.createArticle(data, req.user.sub);
         ResponseUtil.created(res, "Article created successfully", article);
     }
