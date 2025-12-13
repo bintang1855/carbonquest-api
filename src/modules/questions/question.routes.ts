@@ -102,6 +102,47 @@ router.get(
 
 /**
  * @openapi
+ * /questions/quiz/{quiz_id}:
+ *   get:
+ *     tags:
+ *       - Questions
+ *     summary: Get questions by quiz ID
+ *     description: Retrieve all questions for a specific quiz with their answers
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: quiz_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Quiz ID
+ *     responses:
+ *       200:
+ *         description: Questions retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get(
+  "/quiz/:quiz_id",
+  authMiddleware() as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const quiz_id = parseInt(req.params.quiz_id);
+      const questions = await questionService.getQuestionsByQuizId(quiz_id);
+      ResponseUtil.success(res, "Questions retrieved successfully", questions);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
  * /questions/{id}:
  *   get:
  *     tags:
@@ -167,15 +208,20 @@ router.get(
  *           schema:
  *             type: object
  *             properties:
- *               points:
+ *               id_quiz:
  *                 type: integer
- *                 example: 15
+ *                 example: 1
+ *                 description: The quiz ID this question belongs to
  *               content:
  *                 type: string
  *                 example: What is greenhouse effect?
- *               category:
- *                 type: string
- *                 example: Climate
+ *               points:
+ *                 type: integer
+ *                 example: 15
+ *               order:
+ *                 type: integer
+ *                 example: 2
+ *                 description: Order of the question in the quiz
  *     responses:
  *       200:
  *         description: Question updated successfully

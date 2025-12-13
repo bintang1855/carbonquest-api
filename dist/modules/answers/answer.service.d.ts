@@ -9,5 +9,7 @@ export declare class AnswerService {
         is_correct: boolean;
     }[]>;
     createAnswer(questionId: number, data: CreateAnswerDTO): Promise<import("../../types/index.js").AnswerDTO>;
+    updateAnswer(id: number, data: Partial<CreateAnswerDTO>): Promise<import("../../types/index.js").AnswerDTO>;
+    deleteAnswer(id: number): Promise<void>;
 }
 //# sourceMappingURL=answer.service.d.ts.map

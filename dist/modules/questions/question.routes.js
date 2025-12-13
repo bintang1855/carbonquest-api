@@ -20,16 +20,24 @@ const questionService = new QuestionService();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - id_quiz
+ *               - content
  *             properties:
- *               points:
+ *               id_quiz:
  *                 type: integer
- *                 example: 10
+ *                 example: 1
+ *                 description: The quiz ID this question belongs to
  *               content:
  *                 type: string
  *                 example: What is carbon footprint?
- *               category:
- *                 type: string
- *                 example: Environment
+ *               points:
+ *                 type: integer
+ *                 example: 10
+ *               order:
+ *                 type: integer
+ *                 example: 1
+ *                 description: Order of the question in the quiz
  *     responses:
  *       201:
  *         description: Question created successfully
@@ -67,6 +75,39 @@ router.post("/", authMiddleware("org"), (async (req, res, next) => {
 router.get("/", authMiddleware(), (async (_req, res, next) => {
     try {
         const questions = await questionService.getAllQuestions();
+        ResponseUtil.success(res, "Questions retrieved successfully", questions);
+    }
+    catch (err) {
+        next(err);
+    }
+}));
+/**
+ * @openapi
+ * /questions/quiz/{quiz_id}:
+ *   get:
+ *     tags:
+ *       - Questions
+ *     summary: Get questions by quiz ID
+ *     description: Retrieve all questions for a specific quiz with their answers
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: quiz_id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Quiz ID
+ *     responses:
+ *       200:
+ *         description: Questions retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/quiz/:quiz_id", authMiddleware(), (async (req, res, next) => {
+    try {
+        const quiz_id = parseInt(req.params.quiz_id);
+        const questions = await questionService.getQuestionsByQuizId(quiz_id);
         ResponseUtil.success(res, "Questions retrieved successfully", questions);
     }
     catch (err) {
@@ -132,15 +173,20 @@ router.get("/:id", authMiddleware(), (async (req, res, next) => {
  *           schema:
  *             type: object
  *             properties:
- *               points:
+ *               id_quiz:
  *                 type: integer
- *                 example: 15
+ *                 example: 1
+ *                 description: The quiz ID this question belongs to
  *               content:
  *                 type: string
  *                 example: What is greenhouse effect?
- *               category:
- *                 type: string
- *                 example: Climate
+ *               points:
+ *                 type: integer
+ *                 example: 15
+ *               order:
+ *                 type: integer
+ *                 example: 2
+ *                 description: Order of the question in the quiz
  *     responses:
  *       200:
  *         description: Question updated successfully

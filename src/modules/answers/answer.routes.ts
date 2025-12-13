@@ -30,13 +30,17 @@ const answerService = new AnswerService();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - content
+ *               - is_correct
  *             properties:
- *               points:
- *                 type: integer
- *                 example: 5
- *               desc:
+ *               content:
  *                 type: string
- *                 example: The total greenhouse gas emissions
+ *                 example: Total greenhouse gas emissions caused by an individual
+ *               is_correct:
+ *                 type: boolean
+ *                 example: true
+ *                 description: Whether this is the correct answer
  *     responses:
  *       201:
  *         description: Answer created successfully
@@ -99,6 +103,111 @@ router.get(
       const id_question = Number(req.params.id);
       const answers = await answerService.getAnswersByQuestionId(id_question);
       ResponseUtil.success(res, "Answers retrieved successfully", answers);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /answers/{id}:
+ *   put:
+ *     tags:
+ *       - Answers
+ *     summary: Update an answer
+ *     description: Update an existing answer (organization only)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Answer ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               content:
+ *                 type: string
+ *                 example: The amount of carbon dioxide released into the atmosphere
+ *               is_correct:
+ *                 type: boolean
+ *                 example: false
+ *                 description: Whether this is the correct answer
+ *     responses:
+ *       200:
+ *         description: Answer updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - organization role required
+ *       404:
+ *         description: Answer not found
+ */
+router.put(
+  "/answers/:id",
+  authMiddleware("org") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      const data: Partial<CreateAnswerDTO> = req.body;
+      const answer = await answerService.updateAnswer(id, data);
+      ResponseUtil.success(res, "Answer updated successfully", answer);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /answers/{id}:
+ *   delete:
+ *     tags:
+ *       - Answers
+ *     summary: Delete an answer
+ *     description: Delete an existing answer (organization only)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Answer ID
+ *     responses:
+ *       200:
+ *         description: Answer deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - organization role required
+ *       404:
+ *         description: Answer not found
+ */
+router.delete(
+  "/answers/:id",
+  authMiddleware("org") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      await answerService.deleteAnswer(id);
+      ResponseUtil.success(res, "Answer deleted successfully", null);
     } catch (err) {
       next(err);
     }
