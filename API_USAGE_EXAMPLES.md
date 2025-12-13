@@ -52,11 +52,23 @@ POST /auth/user/register HTTP/1.1
 Content-Type: application/json
 
 {
-  "name": "Alice Johnson",
+  "name": "Alice",
+  "last_name": "Johnson",
+  "birth_date": "1995-03-15",
   "email": "alice@example.com",
+  "phone": "081234567890",
   "password": "MyPassword456!"
 }
 ```
+
+**Fields:**
+
+- `name` (required): First name
+- `last_name` (optional): Last name
+- `birth_date` (optional): Date of birth (format: YYYY-MM-DD)
+- `email` (required): Email address
+- `phone` (optional): Phone number
+- `password` (required): Password
 
 **Response:**
 
@@ -67,8 +79,11 @@ Content-Type: application/json
   "data": {
     "user": {
       "id_user": 1,
-      "name": "Alice Johnson",
-      "email": "alice@example.com"
+      "name": "Alice",
+      "last_name": "Johnson",
+      "birth_date": "1995-03-15T00:00:00.000Z",
+      "email": "alice@example.com",
+      "phone": "081234567890"
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzAw..."
   }
@@ -210,7 +225,30 @@ Content-Type: application/json
 }
 ```
 
-### 4. View My Missions
+### 4. Update Password
+
+```http
+PUT /users/password HTTP/1.1
+Authorization: Bearer USER_TOKEN
+Content-Type: application/json
+
+{
+  "oldPassword": "MyPassword456!",
+  "newPassword": "NewSecurePass789!"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Password updated successfully",
+  "data": null
+}
+```
+
+### 5. View My Missions
 
 ```http
 GET /me/missions HTTP/1.1
@@ -445,7 +483,153 @@ const response = await axios.post("/articles", formData, {
 http://localhost:4000/uploads/1702345678902-987654321.jpg
 ```
 
-### 5. View All Users
+### 2. Update a Mission
+
+```bash
+curl -X PUT http://localhost:4000/missions/3 \
+  -H "Authorization: Bearer ORG_TOKEN" \
+  -F "title=Updated Plant Trees Challenge" \
+  -F "points=250"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Mission updated successfully",
+  "data": {
+    "id_mission": 3,
+    "title": "Updated Plant Trees Challenge",
+    "points": 250
+  }
+}
+```
+
+### 3. Delete a Mission
+
+```http
+DELETE /missions/3 HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Mission deleted successfully",
+  "data": null
+}
+```
+
+### 4. Update an Article
+
+```bash
+curl -X PUT http://localhost:4000/articles/1 \
+  -H "Authorization: Bearer ORG_TOKEN" \
+  -F "title=Updated Carbon Footprint Guide" \
+  -F "content=Updated content here..."
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Article updated successfully",
+  "data": {
+    "id_article": 1,
+    "title": "Updated Carbon Footprint Guide"
+  }
+}
+```
+
+### 5. Delete an Article
+
+```http
+DELETE /articles/1 HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Article deleted successfully",
+  "data": null
+}
+```
+
+### 6. Update a Question
+
+```http
+PUT /questions/1 HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+Content-Type: application/json
+
+{
+  "content": "Updated question text?",
+  "points": 15
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Question updated successfully",
+  "data": {
+    "id_question": 1,
+    "content": "Updated question text?",
+    "points": 15
+  }
+}
+```
+
+### 7. Delete a Question
+
+```http
+DELETE /questions/1 HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Question deleted successfully",
+  "data": null
+}
+```
+
+### 8. Update Organization Password
+
+```http
+PUT /organizations/password HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+Content-Type: application/json
+
+{
+  "oldPassword": "SecurePass123!",
+  "newPassword": "NewOrgPassword456!"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Password updated successfully",
+  "data": null
+}
+```
+
+### 9. View All Users
 
 ```http
 GET /users HTTP/1.1
@@ -472,6 +656,51 @@ Authorization: Bearer ORG_TOKEN
   ]
 }
 ```
+
+---
+
+## Leaderboard
+
+### Get User Rankings
+
+```http
+GET /users/leaderboard HTTP/1.1
+Authorization: Bearer USER_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Leaderboard retrieved successfully",
+  "data": [
+    {
+      "id_user": 1,
+      "name": "Alice",
+      "email": "alice@example.com",
+      "total_points": 350,
+      "session_points": 150,
+      "mission_points": 200
+    },
+    {
+      "id_user": 2,
+      "name": "Bob",
+      "email": "bob@example.com",
+      "total_points": 280,
+      "session_points": 100,
+      "mission_points": 180
+    }
+  ]
+}
+```
+
+**Points Breakdown:**
+
+- `total_points`: Combined points from sessions and missions
+- `session_points`: Points earned from quiz sessions
+- `mission_points`: Points earned from completed missions
+- Users are sorted by `total_points` in descending order
 
 ---
 
@@ -682,6 +911,16 @@ Authorization: Bearer USER_TOKEN
 6. **Check the `success` field** in responses to determine if the request succeeded
 
 7. **Points are accumulated** from missions and quiz sessions
+
+8. **Image uploads** use `multipart/form-data` with max 5MB size (JPEG, JPG, PNG, GIF, WEBP)
+
+9. **UPDATE and DELETE operations** require organization role for articles, missions, and questions
+
+10. **Password updates** require the old password for verification
+
+11. **User registration fields**: Only `name`, `email`, and `password` are required. `last_name`, `birth_date`, and `phone` are optional
+
+12. **Leaderboard** is automatically calculated from user's quiz sessions and completed missions
 
 ---
 
