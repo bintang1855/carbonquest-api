@@ -3,6 +3,7 @@ import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { AuthenticatedRequest } from "../../types/index.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { UserService } from "./user.service.js";
+import { upload } from "../../middleware/upload.middleware.js";
 
 const router = Router();
 const userService = new UserService();
@@ -222,6 +223,205 @@ router.put(
       const { oldPassword, newPassword } = req.body;
       await userService.updatePassword(req.user.sub, oldPassword, newPassword);
       ResponseUtil.success(res, "Password updated successfully", null);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /users/{id}:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: Update user profile
+ *     description: Update user information (user can only update their own profile)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               last_name:
+ *                 type: string
+ *                 example: Smith
+ *               birth_date:
+ *                 type: string
+ *                 format: date
+ *                 example: 1990-01-01
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *               phone:
+ *                 type: string
+ *                 example: +1234567890
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - can only update own profile
+ *       404:
+ *         description: User not found
+ */
+router.put(
+  "/:id",
+  authMiddleware("user") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+
+      // Users can only update their own profile
+      if (req.user.sub !== id) {
+        throw new Error("You can only update your own profile");
+      }
+
+      const data = req.body;
+      const user = await userService.updateUser(id, data);
+      ResponseUtil.success(res, "User updated successfully", user);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /users/{id}:
+ *   delete:
+ *     tags:
+ *       - Users
+ *     summary: Delete a user
+ *     description: Delete a user account (user can delete their own account, or organization can delete any user)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: User not found
+ */
+router.delete(
+  "/:id",
+  authMiddleware() as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+
+      // Users can only delete their own account, org can delete any user
+      if (req.user.role === "user" && req.user.sub !== id) {
+        throw new Error("You can only delete your own account");
+      }
+
+      await userService.deleteUser(id);
+      ResponseUtil.success(res, "User deleted successfully", null);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /users/{id}/profile-image:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: Upload user profile image
+ *     description: Upload or update profile image for a user (user can only update their own image)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: User ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - profile_image
+ *             properties:
+ *               profile_image:
+ *                 type: string
+ *                 format: binary
+ *                 description: Profile image file (jpg, jpeg, png, max 5MB)
+ *     responses:
+ *       200:
+ *         description: Profile image uploaded successfully
+ *       400:
+ *         description: No file uploaded or invalid file
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - can only update own profile image
+ *       404:
+ *         description: User not found
+ */
+router.put(
+  "/:id/profile-image",
+  authMiddleware("user") as any,
+  upload.single("profile_image"),
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+
+      // Users can only update their own profile image
+      if (req.user.sub !== id) {
+        throw new Error("You can only update your own profile image");
+      }
+
+      if (!req.file) {
+        throw new Error("No file uploaded");
+      }
+
+      const profile_image = `/uploads/${req.file.filename}`;
+      const user = await userService.updateProfileImage(id, profile_image);
+      ResponseUtil.success(res, "Profile image uploaded successfully", user);
     } catch (err) {
       next(err);
     }

@@ -9,13 +9,14 @@ generator client {
 }
 
 model Users {
-  id_user    Int       @id @default(autoincrement())
-  name       String    @db.VarChar(100)
-  last_name  String?   @db.VarChar(100)
-  birth_date DateTime?
-  email      String    @db.VarChar(100)
-  phone      String?   @db.VarChar(20)
-  password   String    @db.VarChar(100)
+  id_user       Int       @id @default(autoincrement())
+  name          String    @db.VarChar(100)
+  last_name     String?   @db.VarChar(100)
+  birth_date    DateTime?
+  email         String    @db.VarChar(100)
+  phone         String?   @db.VarChar(20)
+  password      String    @db.VarChar(100)
+  profile_image String?   @db.VarChar(255)
 
   // relations
   sessions      Sessions[]

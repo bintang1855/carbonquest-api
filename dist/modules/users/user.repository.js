@@ -18,10 +18,21 @@ export class UserRepository {
             data,
         });
     }
+    async update(id, data) {
+        return await prisma.users.update({
+            where: { id_user: id },
+            data,
+        });
+    }
     async updatePassword(id, hashedPassword) {
         await prisma.users.update({
             where: { id_user: id },
             data: { password: hashedPassword },
+        });
+    }
+    async delete(id) {
+        await prisma.users.delete({
+            where: { id_user: id },
         });
     }
     async getLeaderboard() {

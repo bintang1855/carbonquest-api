@@ -24,10 +24,23 @@ export class UserRepository {
     });
   }
 
+  async update(id: number, data: Partial<CreateUserDTO>): Promise<UserDTO> {
+    return await prisma.users.update({
+      where: { id_user: id },
+      data,
+    });
+  }
+
   async updatePassword(id: number, hashedPassword: string): Promise<void> {
     await prisma.users.update({
       where: { id_user: id },
       data: { password: hashedPassword },
+    });
+  }
+
+  async delete(id: number): Promise<void> {
+    await prisma.users.delete({
+      where: { id_user: id },
     });
   }
 

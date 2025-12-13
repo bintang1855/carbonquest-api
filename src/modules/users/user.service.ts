@@ -1,5 +1,5 @@
 import { AppError } from "../../middleware/error.middleware.js";
-import { UserDTO } from "../../types/index.js";
+import { CreateUserDTO, UserDTO } from "../../types/index.js";
 import { UserRepository } from "./user.repository.js";
 import bcrypt from "bcryptjs";
 
@@ -55,5 +55,48 @@ export class UserService {
 
     // Update password
     await this.repository.updatePassword(id, hashedPassword);
+  }
+
+  async updateUser(
+    id: number,
+    data: Partial<Omit<UserDTO, "id_user" | "password">>
+  ): Promise<Omit<UserDTO, "password">> {
+    const user = await this.repository.findById(id);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    const updatedUser = await this.repository.update(
+      id,
+      data as Partial<CreateUserDTO>
+    );
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    const user = await this.repository.findById(id);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    await this.repository.delete(id);
+  }
+
+  async updateProfileImage(
+    id: number,
+    profile_image: string
+  ): Promise<Omit<UserDTO, "password">> {
+    const user = await this.repository.findById(id);
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    const updatedUser = await this.repository.update(id, { profile_image });
+    const { password, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
   }
 }

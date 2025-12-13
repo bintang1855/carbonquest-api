@@ -38,5 +38,30 @@ export class UserService {
         // Update password
         await this.repository.updatePassword(id, hashedPassword);
     }
+    async updateUser(id, data) {
+        const user = await this.repository.findById(id);
+        if (!user) {
+            throw new AppError("User not found", 404);
+        }
+        const updatedUser = await this.repository.update(id, data);
+        const { password, ...userWithoutPassword } = updatedUser;
+        return userWithoutPassword;
+    }
+    async deleteUser(id) {
+        const user = await this.repository.findById(id);
+        if (!user) {
+            throw new AppError("User not found", 404);
+        }
+        await this.repository.delete(id);
+    }
+    async updateProfileImage(id, profile_image) {
+        const user = await this.repository.findById(id);
+        if (!user) {
+            throw new AppError("User not found", 404);
+        }
+        const updatedUser = await this.repository.update(id, { profile_image });
+        const { password, ...userWithoutPassword } = updatedUser;
+        return userWithoutPassword;
+    }
 }
 //# sourceMappingURL=user.service.js.map

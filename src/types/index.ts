@@ -35,6 +35,7 @@ export interface UserDTO {
   email: string;
   phone?: string | null;
   password?: string; // Optional in responses
+  profile_image?: string | null;
 }
 
 export interface CreateUserDTO {
@@ -44,6 +45,7 @@ export interface CreateUserDTO {
   email: string;
   phone?: string;
   password: string;
+  profile_image?: string;
 }
 
 export interface LoginDTO {
