@@ -23,6 +23,9 @@ const questionService = new QuestionService();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - id_quiz
+ *               - content
  *             properties:
  *               id_quiz:
  *                 type: integer
@@ -30,14 +33,6 @@ const questionService = new QuestionService();
  *                 description: The quiz ID this question belongs to
  *               content:
  *                 type: string
- *                 example: What is the definition of carbon footprint?
- *               points:
- *                 type: integer
- *                 example: 10
- *               order:
- *                 type: integer
- *                 example: 1
- *                 description: Order of the question in the quiz
  *                 example: What is carbon footprint?
  *               points:
  *                 type: integer
