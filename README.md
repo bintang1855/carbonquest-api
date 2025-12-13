@@ -8,8 +8,8 @@ A comprehensive gamification API built with **Express.js**, **TypeScript**, **Pr
 - ✅ **Model-Service-Repository Architecture** - Clean separation of concerns
 - ✅ **Prisma ORM** - Type-safe database operations
 - ✅ **JWT Authentication** - Secure user and organization authentication
-- ✅ **File Upload** - Multer integration for image uploads
-- ✅ **Rate Limiting** - Protection against abuse (1000 req/min global, 5 req/15min for auth)
+- ✅ **Secure File Upload** - Multer with rate limiting and validation
+- ✅ **Rate Limiting** - Upload endpoints (10 req/15min), Auth (5 req/15min), Global (1000 req/min)
 - ✅ **Standardized API Responses** - Consistent response format across all endpoints
 - ✅ **Swagger Documentation** - Interactive API documentation at `/docs`
 - ✅ **Role-Based Access Control** - User and Organization roles with protected endpoints
@@ -25,7 +25,8 @@ src/
 ├── middleware/
 │   ├── auth.middleware.ts      # JWT authentication middleware
 │   ├── error.middleware.ts     # Global error handling
-│   └── upload.middleware.ts    # File upload middleware
+│   ├── rate-limit.middleware.ts # Upload rate limiting
+│   └── upload.middleware.ts    # File upload middleware (5MB, images only)
 ├── modules/
 │   ├── auth/
 │   │   ├── auth.service.ts     # Authentication business logic
@@ -283,6 +284,12 @@ Authorization: Bearer <your-jwt-token>
 - `PUT /articles/:id` - Update article (Organization only)
 - `DELETE /articles/:id` - Delete article (Organization only)
 
+### Files (Secure Access)
+
+- `GET /files/:filename` - Get uploaded file (images only, validated)
+
+**Note:** Files are no longer accessible via static `/uploads` folder for security. Use `/files/:filename` endpoint instead.
+
 ## 📦 Response Format
 
 All API responses follow this standardized format:
@@ -326,9 +333,13 @@ All API responses follow this standardized format:
 
 - Users can only update/delete their own profile
 - Organizations can delete any user
-- Image uploads (missions, articles, profile) use multipart/form-data
-- Max file size: 5MB
-- Allowed formats: jpg, jpeg, png, gif, webp
+- **File Upload Security:**
+  - Upload rate limit: 10 requests per 15 minutes
+  - Files stored in `/uploads`, accessed via `/files/:filename`
+  - Path traversal protection and file type validation
+  - Max file size: 5MB
+  - Allowed formats: jpg, jpeg, png, gif, webp
+  - Cached for 1 year (immutable)
 
 ## 🧪 Testing with Swagger
 
@@ -403,9 +414,12 @@ docker-compose up -d
 ### File Uploads
 
 - **Multiple Contexts**: Missions, Articles, and Profile Images
+- **Rate Limited**: 10 uploads per 15 minutes per IP
 - **Size Limits**: 5MB maximum per file
 - **Type Validation**: Images only (jpg, jpeg, png, gif, webp)
-- **Storage**: Local filesystem with `/uploads` endpoint
+- **Secure Access**: Files accessed via `/files/:filename` with validation
+- **Storage**: Local filesystem in `/uploads` directory
+- **Security**: Path traversal protection, MIME type validation, filename sanitization
 
 ### Leaderboard System
 

@@ -1,6 +1,7 @@
 import { NextFunction, Response, Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { upload } from "../../middleware/upload.middleware.js";
+import { uploadLimiter } from "../../middleware/rate-limit.middleware.js";
 import { AuthenticatedRequest, CreateMissionDTO } from "../../types/index.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { MissionService } from "./mission.service.js";
@@ -65,6 +66,7 @@ const missionService = new MissionService();
  */
 router.post(
   "/",
+  uploadLimiter,
   authMiddleware("org") as any,
   upload.single("coverImage") as any,
   (async (
@@ -86,7 +88,7 @@ router.post(
 
       // Add cover image URL if file was uploaded
       if (req.file) {
-        data.cover_image = `/uploads/${req.file.filename}`;
+        data.cover_image = `/files/${req.file.filename}`;
       }
 
       const mission = await missionService.createMission(data, req.user.sub);
@@ -228,6 +230,7 @@ router.get(
  */
 router.put(
   "/:id",
+  uploadLimiter,
   authMiddleware("org") as any,
   upload.single("coverImage") as any,
   (async (
@@ -250,7 +253,7 @@ router.put(
 
       // Add cover image URL if file was uploaded
       if (req.file) {
-        data.cover_image = `/uploads/${req.file.filename}`;
+        data.cover_image = `/files/${req.file.filename}`;
       }
 
       // Remove undefined fields

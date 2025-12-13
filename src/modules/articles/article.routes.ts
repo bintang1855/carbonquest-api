@@ -1,6 +1,7 @@
 import { NextFunction, Response, Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { upload } from "../../middleware/upload.middleware.js";
+import { uploadLimiter } from "../../middleware/rate-limit.middleware.js";
 import { AuthenticatedRequest, CreateArticleDTO } from "../../types/index.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { ArticleService } from "./article.service.js";
@@ -71,6 +72,7 @@ const articleService = new ArticleService();
  */
 router.post(
   "/",
+  uploadLimiter,
   authMiddleware("org") as any,
   upload.single("coverImage") as any,
   (async (
@@ -94,7 +96,7 @@ router.post(
 
       // Add cover image URL if file was uploaded
       if (req.file) {
-        data.cover_image = `/uploads/${req.file.filename}`;
+        data.cover_image = `/files/${req.file.filename}`;
         console.log("File uploaded:", req.file.filename);
       } else {
         console.log("No file uploaded");
@@ -245,6 +247,7 @@ router.get(
  */
 router.put(
   "/:id",
+  uploadLimiter,
   authMiddleware("org") as any,
   upload.single("coverImage") as any,
   (async (
@@ -269,7 +272,7 @@ router.put(
 
       // Add cover image URL if file was uploaded
       if (req.file) {
-        data.cover_image = `/uploads/${req.file.filename}`;
+        data.cover_image = `/files/${req.file.filename}`;
       }
 
       // Remove undefined fields

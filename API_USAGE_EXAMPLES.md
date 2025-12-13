@@ -317,7 +317,7 @@ const response = await axios.put("/users/1/profile-image", formData, {
     "id_user": 1,
     "name": "Alice",
     "email": "alice@example.com",
-    "profile_image": "/uploads/1702345678903-profile-123.jpg"
+    "profile_image": "/files/1702345678903-profile-123.jpg"
   }
 }
 ```
@@ -325,8 +325,10 @@ const response = await axios.put("/users/1/profile-image", formData, {
 **Note:**
 
 - Max file size: 5MB
-- Allowed formats: jpg, jpeg, png
+- Allowed formats: jpg, jpeg, png, gif, webp
 - Users can only upload their own profile image
+- Upload rate limit: 10 requests per 15 minutes
+- Files accessed via `/files/:filename` endpoint
 
 ### 7. View My Missions
 
@@ -416,7 +418,7 @@ const response = await axios.post("/missions", formData, {
     "title": "Plant Trees Challenge",
     "tags": "environment,sustainability",
     "desc": "Plant 5 trees in your local community",
-    "cover_image": "/uploads/1702345678901-123456789.jpg",
+    "cover_image": "/files/1702345678901-123456789.jpg",
     "photo_caption": "Community tree planting event",
     "author_name": "Jane Doe",
     "author_role": "Admin",
@@ -596,7 +598,7 @@ const response = await axios.post("/articles", formData, {
     "topic": "climate",
     "description": "Learn about your environmental impact",
     "content": "A carbon footprint is the total amount of greenhouse gases...",
-    "cover_image": "/uploads/1702345678902-987654321.jpg",
+    "cover_image": "/files/1702345678902-987654321.jpg",
     "photo_caption": "Carbon emissions visualization",
     "photo_credit": "John Smith Photography",
     "author_name": "Dr. Emily Green",
@@ -612,8 +614,10 @@ const response = await axios.post("/articles", formData, {
 **Access uploaded images:**
 
 ```
-http://localhost:4000/uploads/1702345678902-987654321.jpg
+http://localhost:4000/files/1702345678902-987654321.jpg
 ```
+
+**Note:** Files are now securely accessed via `/files/:filename` endpoint with validation.
 
 ### 2. Update a Mission
 
@@ -914,7 +918,7 @@ Authorization: Bearer USER_TOKEN
       "id_user": 1,
       "name": "Alice",
       "email": "alice@example.com",
-      "profile_image": "/uploads/profile-123.jpg",
+      "profile_image": "/files/profile-123.jpg",
       "total_points": 350,
       "session_points": 150,
       "mission_points": 200
@@ -1184,21 +1188,23 @@ Authorization: Bearer USER_TOKEN
 
 7. **Points are accumulated** from missions and quiz sessions
 
-8. **Image uploads** use `multipart/form-data` with max 5MB size (JPEG, JPG, PNG, GIF, WEBP)
+8. **Image uploads** use `multipart/form-data` with max 5MB size (JPEG, JPG, PNG, GIF, WEBP). Upload rate limited to 10 requests per 15 minutes
 
-9. **UPDATE and DELETE operations** require organization role for articles, missions, and questions
+9. **File access**: Uploaded files accessed via `/files/:filename` endpoint with security validation, not direct static URLs
 
-10. **Password updates** require the old password for verification
+10. **UPDATE and DELETE operations** require organization role for articles, missions, and questions
 
-11. **User registration fields**: Only `name`, `email`, and `password` are required. `last_name`, `birth_date`, `phone`, and `profile_image` are optional. `profile_image` defaults to empty string
+11. **Password updates** require the old password for verification
 
-12. **Profile image upload**: Use PUT /users/:id/profile-image with multipart/form-data. Max 5MB, formats: jpg, jpeg, png. Users can only upload their own image
+12. **User registration fields**: Only `name`, `email`, and `password` are required. `last_name`, `birth_date`, `phone`, and `profile_image` are optional. `profile_image` defaults to empty string
 
-13. **Quiz system**: Questions belong to Quizzes. Answers have `is_correct` field to mark correct answers
+13. **Profile image upload**: Use PUT /users/:id/profile-image with multipart/form-data. Max 5MB, formats: jpg, jpeg, png, gif, webp. Users can only upload their own image
 
-14. **Leaderboard** is automatically calculated from user's quiz sessions and completed missions and includes profile_image
+14. **Quiz system**: Questions belong to Quizzes. Answers have `is_correct` field to mark correct answers
 
-15. **User CRUD**: Users can update their own profile (PUT /users/:id) and delete their own account (DELETE /users/:id). Organizations can delete any user
+15. **Leaderboard** is automatically calculated from user's quiz sessions and completed missions and includes profile_image
+
+16. **User CRUD**: Users can update their own profile (PUT /users/:id) and delete their own account (DELETE /users/:id). Organizations can delete any user
 
 ---
 

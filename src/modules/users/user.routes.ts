@@ -4,6 +4,7 @@ import { AuthenticatedRequest } from "../../types/index.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { UserService } from "./user.service.js";
 import { upload } from "../../middleware/upload.middleware.js";
+import { uploadLimiter } from "../../middleware/rate-limit.middleware.js";
 
 const router = Router();
 const userService = new UserService();
@@ -408,6 +409,7 @@ router.delete(
  */
 router.put(
   "/:id/profile-image",
+  uploadLimiter,
   authMiddleware("user") as any,
   upload.single("profile_image"),
   (async (
@@ -427,7 +429,7 @@ router.put(
         throw new Error("No file uploaded");
       }
 
-      const profile_image = `/uploads/${req.file.filename}`;
+      const profile_image = `/files/${req.file.filename}`;
       const user = await userService.updateProfileImage(id, profile_image);
       ResponseUtil.success(res, "Profile image uploaded successfully", user);
     } catch (err) {

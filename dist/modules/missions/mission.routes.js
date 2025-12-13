@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { upload } from "../../middleware/upload.middleware.js";
+import { uploadLimiter } from "../../middleware/rate-limit.middleware.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { MissionService } from "./mission.service.js";
 const router = Router();
@@ -60,7 +61,7 @@ const missionService = new MissionService();
  *       403:
  *         description: Forbidden - organization role required
  */
-router.post("/", authMiddleware("org"), upload.single("coverImage"), (async (req, res, next) => {
+router.post("/", uploadLimiter, authMiddleware("org"), upload.single("coverImage"), (async (req, res, next) => {
     try {
         const data = {
             title: req.body.title,
@@ -74,7 +75,7 @@ router.post("/", authMiddleware("org"), upload.single("coverImage"), (async (req
         };
         // Add cover image URL if file was uploaded
         if (req.file) {
-            data.cover_image = `/uploads/${req.file.filename}`;
+            data.cover_image = `/files/${req.file.filename}`;
         }
         const mission = await missionService.createMission(data, req.user.sub);
         ResponseUtil.created(res, "Mission created successfully", mission);
@@ -196,7 +197,7 @@ router.get("/:id", authMiddleware(), (async (req, res, next) => {
  *       404:
  *         description: Mission not found
  */
-router.put("/:id", authMiddleware("org"), upload.single("coverImage"), (async (req, res, next) => {
+router.put("/:id", uploadLimiter, authMiddleware("org"), upload.single("coverImage"), (async (req, res, next) => {
     try {
         const id = parseInt(req.params.id);
         const data = {
@@ -211,7 +212,7 @@ router.put("/:id", authMiddleware("org"), upload.single("coverImage"), (async (r
         };
         // Add cover image URL if file was uploaded
         if (req.file) {
-            data.cover_image = `/uploads/${req.file.filename}`;
+            data.cover_image = `/files/${req.file.filename}`;
         }
         // Remove undefined fields
         Object.keys(data).forEach((key) => data[key] === undefined &&

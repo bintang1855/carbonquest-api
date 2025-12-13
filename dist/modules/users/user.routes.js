@@ -3,6 +3,7 @@ import { authMiddleware } from "../../middleware/auth.middleware.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { UserService } from "./user.service.js";
 import { upload } from "../../middleware/upload.middleware.js";
+import { uploadLimiter } from "../../middleware/rate-limit.middleware.js";
 const router = Router();
 const userService = new UserService();
 /**
@@ -347,7 +348,7 @@ router.delete("/:id", authMiddleware(), (async (req, res, next) => {
  *       404:
  *         description: User not found
  */
-router.put("/:id/profile-image", authMiddleware("user"), upload.single("profile_image"), (async (req, res, next) => {
+router.put("/:id/profile-image", uploadLimiter, authMiddleware("user"), upload.single("profile_image"), (async (req, res, next) => {
     try {
         const id = Number(req.params.id);
         // Users can only update their own profile image
@@ -357,7 +358,7 @@ router.put("/:id/profile-image", authMiddleware("user"), upload.single("profile_
         if (!req.file) {
             throw new Error("No file uploaded");
         }
-        const profile_image = `/uploads/${req.file.filename}`;
+        const profile_image = `/files/${req.file.filename}`;
         const user = await userService.updateProfileImage(id, profile_image);
         ResponseUtil.success(res, "Profile image uploaded successfully", user);
     }

@@ -2,7 +2,6 @@ import cors from "cors";
 import express, { Application, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
-import path from "path";
 import { swaggerSpec } from "./config/swagger.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 
@@ -10,6 +9,7 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import answerRoutes from "./modules/answers/answer.routes.js";
 import articleRoutes from "./modules/articles/article.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
+import fileRoutes from "./modules/files/file.routes.js";
 import missionRoutes from "./modules/missions/mission.routes.js";
 import organizationRoutes from "./modules/organizations/organization.routes.js";
 import questionRoutes from "./modules/questions/question.routes.js";
@@ -64,9 +64,6 @@ export const createApp = (): Application => {
   app.use(cors());
   app.use(express.json());
 
-  // Serve static files (untuk akses gambar yang diupload)
-  app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
   // Health check endpoint
   /**
    * @openapi
@@ -110,6 +107,7 @@ export const createApp = (): Application => {
 
   // Mount routes
   app.use("/auth", authLimiter, authRoutes); // Apply rate limit khusus untuk auth
+  app.use("/files", fileRoutes); // Secure file access
   app.use("/users", userRoutes);
   app.use("/organizations", organizationRoutes);
   app.use("/missions", missionRoutes);
