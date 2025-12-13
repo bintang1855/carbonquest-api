@@ -57,7 +57,8 @@ Content-Type: application/json
   "birth_date": "1995-03-15",
   "email": "alice@example.com",
   "phone": "081234567890",
-  "password": "MyPassword456!"
+  "password": "MyPassword456!",
+  "profile_image": ""
 }
 ```
 
@@ -69,6 +70,7 @@ Content-Type: application/json
 - `email` (required): Email address
 - `phone` (optional): Phone number
 - `password` (required): Password
+- `profile_image` (optional): Profile image URL, defaults to empty string. Use PUT /users/:id/profile-image to upload
 
 **Response:**
 
@@ -83,7 +85,8 @@ Content-Type: application/json
       "last_name": "Johnson",
       "birth_date": "1995-03-15T00:00:00.000Z",
       "email": "alice@example.com",
-      "phone": "081234567890"
+      "phone": "081234567890",
+      "profile_image": ""
     },
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzAw..."
   }
@@ -248,7 +251,84 @@ Content-Type: application/json
 }
 ```
 
-### 5. View My Missions
+### 5. Update User Profile
+
+```http
+PUT /users/1 HTTP/1.1
+Authorization: Bearer USER_TOKEN
+Content-Type: application/json
+
+{
+  "name": "Alice",
+  "last_name": "Johnson-Smith",
+  "email": "alice.new@example.com",
+  "phone": "081234567899"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "User updated successfully",
+  "data": {
+    "id_user": 1,
+    "name": "Alice",
+    "last_name": "Johnson-Smith",
+    "email": "alice.new@example.com",
+    "phone": "081234567899",
+    "profile_image": ""
+  }
+}
+```
+
+**Note:** Users can only update their own profile.
+
+### 6. Upload Profile Image
+
+```bash
+# Using curl
+curl -X PUT http://localhost:4000/users/1/profile-image \
+  -H "Authorization: Bearer USER_TOKEN" \
+  -F "profile_image=@./my-photo.jpg"
+```
+
+```javascript
+// Using JavaScript (Vue.js / React)
+const formData = new FormData();
+formData.append("profile_image", fileObject); // File from input
+
+const response = await axios.put("/users/1/profile-image", formData, {
+  headers: {
+    "Content-Type": "multipart/form-data",
+    Authorization: `Bearer ${userToken}`,
+  },
+});
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Profile image uploaded successfully",
+  "data": {
+    "id_user": 1,
+    "name": "Alice",
+    "email": "alice@example.com",
+    "profile_image": "/uploads/1702345678903-profile-123.jpg"
+  }
+}
+```
+
+**Note:**
+
+- Max file size: 5MB
+- Allowed formats: jpg, jpeg, png
+- Users can only upload their own profile image
+
+### 7. View My Missions
 
 ```http
 GET /me/missions HTTP/1.1
@@ -350,15 +430,51 @@ const response = await axios.post("/missions", formData, {
 
 ### 2. Create a Question
 
+**Updated: Questions now belong to Quizzes**
+
+First, create a Quiz:
+
+```http
+POST /quizzes HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+Content-Type: application/json
+
+{
+  "title": "Kuis Harian - Hari Ini",
+  "category": "Harian",
+  "total_points": 100
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Quiz created successfully",
+  "data": {
+    "id_quiz": 1,
+    "title": "Kuis Harian - Hari Ini",
+    "category": "Harian",
+    "total_points": 100,
+    "id_creator": 1,
+    "created_at": "2024-11-22T10:00:00.000Z"
+  }
+}
+```
+
+Then, create Questions for the Quiz:
+
 ```http
 POST /questions HTTP/1.1
 Authorization: Bearer ORG_TOKEN
 Content-Type: application/json
 
 {
-  "points": 10,
+  "id_quiz": 1,
   "content": "What is the primary greenhouse gas responsible for climate change?",
-  "category": "Climate Science"
+  "points": 10,
+  "order": 1
 }
 ```
 
@@ -370,14 +486,17 @@ Content-Type: application/json
   "message": "Question created successfully",
   "data": {
     "id_question": 1,
-    "points": 10,
+    "id_quiz": 1,
     "content": "What is the primary greenhouse gas responsible for climate change?",
-    "category": "Climate Science"
+    "points": 10,
+    "order": 1
   }
 }
 ```
 
 ### 3. Create Answers for Question
+
+**Updated: Answers now have is_correct flag**
 
 ```http
 POST /questions/1/answers HTTP/1.1
@@ -385,8 +504,8 @@ Authorization: Bearer ORG_TOKEN
 Content-Type: application/json
 
 {
-  "points": 10,
-  "desc": "Carbon Dioxide (CO2)"
+  "content": "Carbon Dioxide (CO2)",
+  "is_correct": true
 }
 ```
 
@@ -398,10 +517,23 @@ Content-Type: application/json
   "message": "Answer created successfully",
   "data": {
     "id_answer": 1,
-    "points": 10,
-    "desc": "Carbon Dioxide (CO2)",
-    "id_question": 1
+    "id_question": 1,
+    "content": "Carbon Dioxide (CO2)",
+    "is_correct": true
   }
+}
+```
+
+Create more answers (incorrect ones):
+
+```http
+POST /questions/1/answers HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+Content-Type: application/json
+
+{
+  "content": "Oxygen",
+  "is_correct": false
 }
 ```
 
@@ -606,7 +738,110 @@ Authorization: Bearer ORG_TOKEN
 }
 ```
 
-### 8. Update Organization Password
+### 8. Update/Delete Answers
+
+Update an answer:
+
+```http
+PUT /answers/1 HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+Content-Type: application/json
+
+{
+  "content": "Carbon Dioxide (CO₂) - Updated",
+  "is_correct": true
+}
+```
+
+Delete an answer:
+
+```http
+DELETE /answers/1 HTTP/1.1
+Authorization: Bearer ORG_TOKEN
+```
+
+### 9. Get Quizzes with Question Count
+
+```http
+GET /quizzes HTTP/1.1
+Authorization: Bearer USER_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Quizzes retrieved successfully",
+  "data": [
+    {
+      "id_quiz": 1,
+      "title": "Kuis Harian - Hari Ini",
+      "category": "Harian",
+      "total_points": 100,
+      "id_creator": 1,
+      "created_at": "2024-11-22T10:00:00.000Z",
+      "creator": {
+        "id_organisasi": 1,
+        "name": "EcoWorld Foundation"
+      },
+      "questions": [
+        {
+          "id_question": 1,
+          "content": "What is carbon footprint?",
+          "answers": [
+            {
+              "id_answer": 1,
+              "content": "Total greenhouse gas emissions",
+              "is_correct": true
+            }
+          ]
+        }
+      ],
+      "question_count": 5
+    }
+  ]
+}
+```
+
+### 10. Get Questions by Quiz ID
+
+```http
+GET /questions/quiz/1 HTTP/1.1
+Authorization: Bearer USER_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Questions retrieved successfully",
+  "data": [
+    {
+      "id_question": 1,
+      "id_quiz": 1,
+      "content": "What is carbon footprint?",
+      "points": 10,
+      "order": 1,
+      "answers": [
+        {
+          "id_answer": 1,
+          "content": "Total greenhouse gas emissions",
+          "is_correct": true
+        },
+        {
+          "id_answer": 2,
+          "content": "The size of your shoe",
+          "is_correct": false
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 11. Update Organization Password
 
 ```http
 PUT /organizations/password HTTP/1.1
@@ -679,6 +914,7 @@ Authorization: Bearer USER_TOKEN
       "id_user": 1,
       "name": "Alice",
       "email": "alice@example.com",
+      "profile_image": "/uploads/profile-123.jpg",
       "total_points": 350,
       "session_points": 150,
       "mission_points": 200
@@ -687,6 +923,7 @@ Authorization: Bearer USER_TOKEN
       "id_user": 2,
       "name": "Bob",
       "email": "bob@example.com",
+      "profile_image": "",
       "total_points": 280,
       "session_points": 100,
       "mission_points": 180
@@ -706,7 +943,41 @@ Authorization: Bearer USER_TOKEN
 
 ## Quiz/Session Flow
 
-### 1. Get Questions
+### 1. Get All Quizzes
+
+```http
+GET /quizzes HTTP/1.1
+Authorization: Bearer USER_TOKEN
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "message": "Quizzes retrieved successfully",
+  "data": [
+    {
+      "id_quiz": 1,
+      "title": "Kuis Harian - Hari Ini",
+      "category": "Harian",
+      "total_points": 100,
+      "question_count": 10,
+      "created_at": "2024-11-22T10:00:00.000Z"
+    },
+    {
+      "id_quiz": 2,
+      "title": "Kuis Mingguan",
+      "category": "Mingguan",
+      "total_points": 500,
+      "question_count": 25,
+      "created_at": "2024-11-15T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+### 2. Get Questions for a Quiz
 
 ```http
 GET /questions HTTP/1.1
@@ -722,21 +993,22 @@ Authorization: Bearer USER_TOKEN
   "data": [
     {
       "id_question": 1,
-      "points": 10,
+      "id_quiz": 1,
       "content": "What is the primary greenhouse gas responsible for climate change?",
-      "category": "Climate Science",
+      "points": 10,
+      "order": 1,
       "answers": [
         {
           "id_answer": 1,
-          "points": 10,
-          "desc": "Carbon Dioxide (CO2)",
-          "id_question": 1
+          "id_question": 1,
+          "content": "Carbon Dioxide (CO2)",
+          "is_correct": true
         },
         {
           "id_answer": 2,
-          "points": 0,
-          "desc": "Oxygen",
-          "id_question": 1
+          "id_question": 1,
+          "content": "Oxygen",
+          "is_correct": false
         }
       ]
     }
@@ -744,7 +1016,7 @@ Authorization: Bearer USER_TOKEN
 }
 ```
 
-### 2. Start a Quiz Session
+### 3. Start a Quiz Session
 
 ```http
 POST /sessions HTTP/1.1
@@ -774,7 +1046,7 @@ Content-Type: application/json
 }
 ```
 
-### 3. Complete Session
+### 4. Complete Session
 
 ```http
 PUT /sessions/1 HTTP/1.1
@@ -804,7 +1076,7 @@ Content-Type: application/json
 }
 ```
 
-### 4. View My Sessions
+### 5. View My Sessions
 
 ```http
 GET /me/sessions HTTP/1.1
@@ -918,9 +1190,15 @@ Authorization: Bearer USER_TOKEN
 
 10. **Password updates** require the old password for verification
 
-11. **User registration fields**: Only `name`, `email`, and `password` are required. `last_name`, `birth_date`, and `phone` are optional
+11. **User registration fields**: Only `name`, `email`, and `password` are required. `last_name`, `birth_date`, `phone`, and `profile_image` are optional. `profile_image` defaults to empty string
 
-12. **Leaderboard** is automatically calculated from user's quiz sessions and completed missions
+12. **Profile image upload**: Use PUT /users/:id/profile-image with multipart/form-data. Max 5MB, formats: jpg, jpeg, png. Users can only upload their own image
+
+13. **Quiz system**: Questions belong to Quizzes. Answers have `is_correct` field to mark correct answers
+
+14. **Leaderboard** is automatically calculated from user's quiz sessions and completed missions and includes profile_image
+
+15. **User CRUD**: Users can update their own profile (PUT /users/:id) and delete their own account (DELETE /users/:id). Organizations can delete any user
 
 ---
 
@@ -934,11 +1212,12 @@ Here's a complete workflow from organization creating content to user participat
 POST /missions (ORG_TOKEN)
 ```
 
-### Step 2: Organization creates questions
+### Step 2: Organization creates quiz and questions
 
 ```bash
-POST /questions (ORG_TOKEN)
-POST /questions/:id/answers (ORG_TOKEN)
+POST /quizzes (ORG_TOKEN)           # Create quiz (Harian/Mingguan/Bulanan)
+POST /questions (ORG_TOKEN)         # Create questions for quiz
+POST /questions/:id/answers (ORG_TOKEN)  # Create answers with is_correct flag
 ```
 
 ### Step 3: Organization publishes article
@@ -951,7 +1230,8 @@ POST /articles (ORG_TOKEN)
 
 ```bash
 GET /missions (USER_TOKEN)
-GET /questions (USER_TOKEN)
+GET /quizzes (USER_TOKEN)           # Get quizzes with question counts
+GET /questions/quiz/:id (USER_TOKEN) # Get questions for specific quiz
 GET /articles (USER_TOKEN)
 ```
 
@@ -964,11 +1244,14 @@ PUT /sessions/:id (USER_TOKEN)         # Complete quiz
 PUT /user-missions/:id (USER_TOKEN)    # Complete mission
 ```
 
-### Step 6: User views progress
+### Step 6: User views progress and manages profile
 
 ```bash
 GET /me/missions (USER_TOKEN)
 GET /me/sessions (USER_TOKEN)
+GET /users/leaderboard (USER_TOKEN)     # View rankings with profile images
+PUT /users/:id (USER_TOKEN)             # Update profile
+PUT /users/:id/profile-image (USER_TOKEN) # Upload profile image
 ```
 
 ---
