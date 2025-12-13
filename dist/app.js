@@ -12,6 +12,7 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import missionRoutes from "./modules/missions/mission.routes.js";
 import organizationRoutes from "./modules/organizations/organization.routes.js";
 import questionRoutes from "./modules/questions/question.routes.js";
+import quizRoutes from "./modules/quizzes/quiz.routes.js";
 import sessionRoutes from "./modules/sessions/session.routes.js";
 import userMissionRoutes from "./modules/user-missions/user-mission.routes.js";
 import userRoutes from "./modules/users/user.routes.js";
@@ -99,6 +100,7 @@ export const createApp = () => {
     app.use("/organizations", organizationRoutes);
     app.use("/missions", missionRoutes);
     app.use("/user-missions", userMissionRoutes);
+    app.use("/quizzes", quizRoutes);
     app.use("/questions", questionRoutes);
     app.use("/", answerRoutes); // Answer routes include /questions/:id/answers
     app.use("/sessions", sessionRoutes);

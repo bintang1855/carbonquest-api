@@ -7,6 +7,9 @@ export class QuestionService {
     async getAllQuestions() {
         return await this.repository.findAll();
     }
+    async getQuestionsByQuizId(id_quiz) {
+        return await this.repository.findByQuizId(id_quiz);
+    }
     async createQuestion(data) {
         return await this.repository.create(data);
     }

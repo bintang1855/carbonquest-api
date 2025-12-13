@@ -33,28 +33,45 @@ model Organization {
 
   missions  Missions[]
   articles  Articles[]
+  quizzes   Quizzes[]
 
   @@map("Organization")
 }
 
+model Quizzes {
+  id_quiz       Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  category      String?   @db.VarChar(100)  // Harian, Mingguan, Bulanan
+  total_points  Int?      @default(0)
+  id_creator    Int
+  created_at    DateTime? @default(now())
+
+  creator   Organization @relation(fields: [id_creator], references: [id_organisasi])
+  questions Questions[]
+
+  @@map("Quizzes")
+}
+
 model Questions {
   id_question Int      @id @default(autoincrement())
-  points      Int?
-  content     String?  @db.Text
-  category    String?  @db.VarChar(100)
+  id_quiz     Int
+  content     String   @db.Text
+  points      Int?     @default(10)
+  order       Int?     // Urutan pertanyaan
 
+  quiz    Quizzes   @relation(fields: [id_quiz], references: [id_quiz], onDelete: Cascade)
   answers Answers[]
 
   @@map("Questions")
 }
 
 model Answers {
-  id_answer  Int      @id @default(autoincrement())
-  points     Int?
-  desc       String?  @db.Text
+  id_answer   Int      @id @default(autoincrement())
   id_question Int
+  content     String   @db.Text
+  is_correct  Boolean  @default(false)
 
-  question Questions @relation(fields: [id_question], references: [id_question])
+  question Questions @relation(fields: [id_question], references: [id_question], onDelete: Cascade)
   sessions Sessions[]
 
   @@map("Answers")

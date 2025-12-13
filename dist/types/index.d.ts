@@ -89,26 +89,42 @@ export interface UpdateUserMissionDTO {
     points?: number;
     completed_time?: string;
 }
+export interface QuizDTO {
+    id_quiz: number;
+    title: string;
+    category?: string | null;
+    total_points?: number | null;
+    id_creator: number;
+    created_at?: Date | null;
+}
+export interface CreateQuizDTO {
+    title: string;
+    category?: string;
+    total_points?: number;
+}
 export interface QuestionDTO {
     id_question: number;
+    id_quiz: number;
+    content: string;
     points?: number | null;
-    content?: string | null;
-    category?: string | null;
+    order?: number | null;
 }
 export interface CreateQuestionDTO {
+    id_quiz: number;
+    content: string;
     points?: number;
-    content?: string;
-    category?: string;
+    order?: number;
 }
 export interface AnswerDTO {
     id_answer: number;
-    points?: number | null;
-    desc?: string | null;
     id_question: number;
+    content: string;
+    is_correct: boolean;
 }
 export interface CreateAnswerDTO {
-    points?: number;
-    desc?: string;
+    id_question: number;
+    content: string;
+    is_correct: boolean;
 }
 export interface SessionDTO {
     id_session: number;

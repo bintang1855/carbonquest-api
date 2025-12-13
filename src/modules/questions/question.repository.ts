@@ -4,14 +4,28 @@ import { CreateQuestionDTO, QuestionDTO } from "../../types/index.js";
 export class QuestionRepository {
   async findAll() {
     return await prisma.questions.findMany({
-      include: { answers: true },
+      include: {
+        answers: true,
+        quiz: true,
+      },
     });
   }
 
   async findById(id: number) {
     return await prisma.questions.findUnique({
       where: { id_question: id },
+      include: {
+        answers: true,
+        quiz: true,
+      },
+    });
+  }
+
+  async findByQuizId(id_quiz: number) {
+    return await prisma.questions.findMany({
+      where: { id_quiz },
       include: { answers: true },
+      orderBy: { order: "asc" },
     });
   }
 

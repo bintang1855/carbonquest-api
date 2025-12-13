@@ -8,11 +8,29 @@ export class AnswerRepository {
     });
   }
 
-  async create(
-    data: CreateAnswerDTO & { id_question: number }
-  ): Promise<AnswerDTO> {
+  async findById(id: number) {
+    return await prisma.answers.findUnique({
+      where: { id_answer: id },
+      include: { question: true },
+    });
+  }
+
+  async create(data: CreateAnswerDTO): Promise<AnswerDTO> {
     return await prisma.answers.create({
       data,
+    });
+  }
+
+  async update(id: number, data: Partial<CreateAnswerDTO>): Promise<AnswerDTO> {
+    return await prisma.answers.update({
+      where: { id_answer: id },
+      data,
+    });
+  }
+
+  async delete(id: number): Promise<void> {
+    await prisma.answers.delete({
+      where: { id_answer: id },
     });
   }
 }

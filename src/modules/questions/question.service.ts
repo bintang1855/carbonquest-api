@@ -12,6 +12,10 @@ export class QuestionService {
     return await this.repository.findAll();
   }
 
+  async getQuestionsByQuizId(id_quiz: number) {
+    return await this.repository.findByQuizId(id_quiz);
+  }
+
   async createQuestion(data: CreateQuestionDTO) {
     return await this.repository.create(data);
   }
