@@ -91,7 +91,7 @@ router.get(
  *                             example: john@example.com
  *                           profile_image:
  *                             type: string
- *                             example: /uploads/profile-123.jpg
+ *                             example: /files/profile-123.jpg
  *                             nullable: true
  *                           total_points:
  *                             type: integer
@@ -277,7 +277,7 @@ router.put(
  *                 example: +1234567890
  *               profile_image:
  *                 type: string
- *                 example: /uploads/profile-123.jpg
+ *                 example: /files/profile-123.jpg
  *                 description: Profile image URL (use PUT /users/:id/profile-image to upload)
  *     responses:
  *       200:
@@ -372,7 +372,13 @@ router.delete(
  *     tags:
  *       - Users
  *     summary: Upload user profile image
- *     description: Upload or update profile image for a user (user can only update their own image)
+ *     description: |
+ *       Upload or update profile image for a user (user can only update their own image).
+ *       **Security Features:**
+ *       - Rate limited: 10 uploads per 15 minutes
+ *       - File size: Max 5MB
+ *       - Allowed formats: jpg, jpeg, png, gif, webp
+ *       - Files stored securely and accessed via /files/:filename
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -394,7 +400,7 @@ router.delete(
  *               profile_image:
  *                 type: string
  *                 format: binary
- *                 description: Profile image file (jpg, jpeg, png, max 5MB)
+ *                 description: Profile image file (jpg, jpeg, png, gif, webp, max 5MB)
  *     responses:
  *       200:
  *         description: Profile image uploaded successfully
@@ -406,6 +412,8 @@ router.delete(
  *         description: Forbidden - can only update own profile image
  *       404:
  *         description: User not found
+ *       429:
+ *         description: Too many requests - rate limit exceeded (max 10 per 15 minutes)
  */
 router.put(
   "/:id/profile-image",
