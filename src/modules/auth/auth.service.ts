@@ -42,6 +42,7 @@ export class AuthService {
       email,
       phone,
       password: hashed,
+      profile_image: "", // Default empty string for profile image
     });
 
     const token = generateToken({ sub: user.id_user, role: "user" });

@@ -53,8 +53,8 @@ const authService = new AuthService();
  *                 example: securePassword123
  *               profile_image:
  *                 type: string
- *                 example: /uploads/profile-123.jpg
- *                 description: Profile image URL (optional, can be uploaded later)
+ *                 example: ""
+ *                 description: Profile image URL (optional, defaults to empty string. Use PUT /users/:id/profile-image to upload)
  *     responses:
  *       201:
  *         description: User registered successfully
