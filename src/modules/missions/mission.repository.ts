@@ -22,4 +22,20 @@ export class MissionRepository {
       data,
     });
   }
+
+  async update(
+    id: number,
+    data: Partial<CreateMissionDTO>
+  ): Promise<MissionDTO> {
+    return await prisma.missions.update({
+      where: { id_mission: id },
+      data,
+    });
+  }
+
+  async delete(id: number): Promise<void> {
+    await prisma.missions.delete({
+      where: { id_mission: id },
+    });
+  }
 }

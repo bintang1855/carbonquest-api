@@ -4,5 +4,6 @@ export declare class OrganizationRepository {
     findByEmail(email: string): Promise<OrganizationDTO | null>;
     findAll(): Promise<OrganizationDTO[]>;
     create(data: CreateOrganizationDTO): Promise<OrganizationDTO>;
+    updatePassword(id: number, hashedPassword: string): Promise<void>;
 }
 //# sourceMappingURL=organization.repository.d.ts.map

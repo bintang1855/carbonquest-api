@@ -16,5 +16,16 @@ export class MissionRepository {
             data,
         });
     }
+    async update(id, data) {
+        return await prisma.missions.update({
+            where: { id_mission: id },
+            data,
+        });
+    }
+    async delete(id) {
+        await prisma.missions.delete({
+            where: { id_mission: id },
+        });
+    }
 }
 //# sourceMappingURL=mission.repository.js.map

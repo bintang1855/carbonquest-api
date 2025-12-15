@@ -13,5 +13,22 @@ export class ArticleService {
             id_author: authorId,
         });
     }
+    async getArticleById(id) {
+        const article = await this.repository.findById(id);
+        if (!article) {
+            throw new Error("Article not found");
+        }
+        return article;
+    }
+    async updateArticle(id, data) {
+        // Check if article exists
+        await this.getArticleById(id);
+        return await this.repository.update(id, data);
+    }
+    async deleteArticle(id) {
+        // Check if article exists
+        await this.getArticleById(id);
+        await this.repository.delete(id);
+    }
 }
 //# sourceMappingURL=article.service.js.map

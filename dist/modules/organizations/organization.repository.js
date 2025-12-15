@@ -18,5 +18,11 @@ export class OrganizationRepository {
             data,
         });
     }
+    async updatePassword(id, hashedPassword) {
+        await prisma.organization.update({
+            where: { id_organisasi: id },
+            data: { password: hashedPassword },
+        });
+    }
 }
 //# sourceMappingURL=organization.repository.js.map

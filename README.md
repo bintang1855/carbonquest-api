@@ -1,6 +1,6 @@
 # CarbonQuest Gamification API
 
-A comprehensive gamification API built with **Express.js**, **TypeScript**, **Prisma**, and **PostgreSQL**. This API follows a clean **Model-Service-Repository** architecture pattern with standardized responses and complete Swagger documentation.
+A comprehensive gamification API built with **Express.js**, **TypeScript**, **Prisma**, and **PostgreSQL**. This API follows a clean **Model-Service-Repository** architecture pattern with standardized responses, file upload support, and complete Swagger documentation.
 
 ## 🚀 Features
 
@@ -8,9 +8,12 @@ A comprehensive gamification API built with **Express.js**, **TypeScript**, **Pr
 - ✅ **Model-Service-Repository Architecture** - Clean separation of concerns
 - ✅ **Prisma ORM** - Type-safe database operations
 - ✅ **JWT Authentication** - Secure user and organization authentication
+- ✅ **Secure File Upload** - Multer with rate limiting and validation
+- ✅ **Rate Limiting** - Upload endpoints (10 req/15min), Auth (5 req/15min), Global (1000 req/min)
 - ✅ **Standardized API Responses** - Consistent response format across all endpoints
 - ✅ **Swagger Documentation** - Interactive API documentation at `/docs`
 - ✅ **Role-Based Access Control** - User and Organization roles with protected endpoints
+- ✅ **Docker Support** - Full containerization with Docker Compose
 - ✅ **Error Handling** - Centralized error handling middleware
 
 ## 📁 Project Structure
@@ -21,7 +24,9 @@ src/
 │   └── swagger.ts              # Swagger/OpenAPI configuration
 ├── middleware/
 │   ├── auth.middleware.ts      # JWT authentication middleware
-│   └── error.middleware.ts     # Global error handling
+│   ├── error.middleware.ts     # Global error handling
+│   ├── rate-limit.middleware.ts # Upload rate limiting
+│   └── upload.middleware.ts    # File upload middleware (5MB, images only)
 ├── modules/
 │   ├── auth/
 │   │   ├── auth.service.ts     # Authentication business logic
@@ -29,15 +34,19 @@ src/
 │   ├── users/
 │   │   ├── user.repository.ts  # User data access layer
 │   │   ├── user.service.ts     # User business logic
-│   │   └── user.routes.ts      # User endpoints
+│   │   └── user.routes.ts      # User endpoints (CRUD + profile image)
 │   ├── organizations/
 │   │   ├── organization.repository.ts
 │   │   ├── organization.service.ts
 │   │   └── organization.routes.ts
+│   ├── quizzes/
+│   │   ├── quiz.repository.ts  # Quiz management
+│   │   ├── quiz.service.ts
+│   │   └── quiz.routes.ts
 │   ├── missions/
 │   │   ├── mission.repository.ts
 │   │   ├── mission.service.ts
-│   │   └── mission.routes.ts
+│   │   └── mission.routes.ts   # Supports image upload
 │   ├── user-missions/
 │   │   ├── user-mission.repository.ts
 │   │   ├── user-mission.service.ts
@@ -45,11 +54,11 @@ src/
 │   ├── questions/
 │   │   ├── question.repository.ts
 │   │   ├── question.service.ts
-│   │   └── question.routes.ts
+│   │   └── question.routes.ts  # Belongs to Quizzes
 │   ├── answers/
 │   │   ├── answer.repository.ts
 │   │   ├── answer.service.ts
-│   │   └── answer.routes.ts
+│   │   └── answer.routes.ts    # Full CRUD with is_correct flag
 │   ├── sessions/
 │   │   ├── session.repository.ts
 │   │   ├── session.service.ts
@@ -57,7 +66,7 @@ src/
 │   └── articles/
 │       ├── article.repository.ts
 │       ├── article.service.ts
-│       └── article.routes.ts
+│       └── article.routes.ts   # Supports image upload
 ├── prisma/
 │   └── client.ts               # Prisma client singleton
 ├── types/
@@ -154,9 +163,15 @@ Content-Type: application/json
 {
   "name": "John Doe",
   "email": "john@example.com",
-  "password": "securePassword123"
+  "password": "securePassword123",
+  "last_name": "Doe",
+  "birth_date": "1990-01-01",
+  "phone": "081234567890",
+  "profile_image": ""
 }
 ```
+
+**Note:** Only `name`, `email`, and `password` are required. `profile_image` defaults to empty string.
 
 #### User Login
 
@@ -209,15 +224,32 @@ Authorization: Bearer <your-jwt-token>
 
 - `GET /users` - Get all users (Organization only)
 - `GET /users/:id` - Get user by ID
+- `GET /users/leaderboard` - Get user leaderboard with points
+- `PUT /users/:id` - Update user profile (User can only update own profile)
+- `PUT /users/:id/profile-image` - Upload profile image (multipart/form-data, max 5MB)
+- `PUT /users/password` - Update password (User only)
+- `DELETE /users/:id` - Delete user account (User can delete own, Org can delete any)
 
 ### Organizations (Requires Authentication)
 
 - `GET /organizations` - Get all organizations (Organization only)
+- `PUT /organizations/password` - Update organization password
+
+### Quizzes (New)
+
+- `POST /quizzes` - Create quiz (Organization only)
+- `GET /quizzes` - Get all quizzes with question counts
+- `GET /quizzes/:id` - Get quiz by ID
+- `PUT /quizzes/:id` - Update quiz (Organization only)
+- `DELETE /quizzes/:id` - Delete quiz (Organization only)
 
 ### Missions
 
-- `POST /missions` - Create mission (Organization only)
+- `POST /missions` - Create mission with image upload (Organization only)
 - `GET /missions` - Get all missions
+- `GET /missions/:id` - Get mission by ID
+- `PUT /missions/:id` - Update mission (Organization only)
+- `DELETE /missions/:id` - Delete mission (Organization only)
 
 ### User Missions
 
@@ -227,10 +259,16 @@ Authorization: Bearer <your-jwt-token>
 
 ### Questions & Answers
 
-- `POST /questions` - Create question (Organization only)
+- `POST /questions` - Create question for a quiz (Organization only)
 - `GET /questions` - Get all questions
-- `POST /questions/:id/answers` - Create answer (Organization only)
+- `GET /questions/:id` - Get question by ID
+- `GET /questions/quiz/:quiz_id` - Get questions by quiz ID
+- `PUT /questions/:id` - Update question (Organization only)
+- `DELETE /questions/:id` - Delete question (Organization only)
+- `POST /questions/:id/answers` - Create answer with is_correct flag (Organization only)
 - `GET /questions/:id/answers` - Get answers for question
+- `PUT /answers/:id` - Update answer (Organization only)
+- `DELETE /answers/:id` - Delete answer (Organization only)
 
 ### Sessions
 
@@ -240,8 +278,17 @@ Authorization: Bearer <your-jwt-token>
 
 ### Articles
 
-- `POST /articles` - Create article (Organization only)
+- `POST /articles` - Create article with image upload (Organization only)
 - `GET /articles` - Get all articles
+- `GET /articles/:id` - Get article by ID
+- `PUT /articles/:id` - Update article (Organization only)
+- `DELETE /articles/:id` - Delete article (Organization only)
+
+### Files (Secure Access)
+
+- `GET /files/:filename` - Get uploaded file (images only, validated)
+
+**Note:** Files are no longer accessible via static `/uploads` folder for security. Use `/files/:filename` endpoint instead.
 
 ## 📦 Response Format
 
@@ -269,13 +316,30 @@ All API responses follow this standardized format:
 
 ## 🔐 Role-Based Access Control
 
-| Endpoint            | User | Organization |
-| ------------------- | ---- | ------------ |
-| GET /users          | ❌   | ✅           |
-| POST /missions      | ❌   | ✅           |
-| POST /user-missions | ✅   | ❌           |
-| POST /questions     | ❌   | ✅           |
-| POST /articles      | ❌   | ✅           |
+| Endpoint                     | User | Organization |
+| ---------------------------- | ---- | ------------ |
+| GET /users                   | ❌   | ✅           |
+| GET /users/leaderboard       | ✅   | ✅           |
+| PUT /users/:id               | ✅   | ❌           |
+| PUT /users/:id/profile-image | ✅   | ❌           |
+| DELETE /users/:id            | ✅   | ✅           |
+| POST /quizzes                | ❌   | ✅           |
+| POST /missions               | ❌   | ✅           |
+| POST /user-missions          | ✅   | ❌           |
+| POST /questions              | ❌   | ✅           |
+| POST /articles               | ❌   | ✅           |
+
+**Notes:**
+
+- Users can only update/delete their own profile
+- Organizations can delete any user
+- **File Upload Security:**
+  - Upload rate limit: 10 requests per 15 minutes
+  - Files stored in `/uploads`, accessed via `/files/:filename`
+  - Path traversal protection and file type validation
+  - Max file size: 5MB
+  - Allowed formats: jpg, jpeg, png, gif, webp
+  - Cached for 1 year (immutable)
 
 ## 🧪 Testing with Swagger
 
@@ -319,12 +383,53 @@ docker-compose up -d
 
 ## 🔧 Technology Stack
 
-- **Runtime**: Node.js
-- **Language**: TypeScript
-- **Framework**: Express.js
-- **ORM**: Prisma
-- **Database**: PostgreSQL
+- **Runtime**: Node.js v18+
+- **Language**: TypeScript 5.7
+- **Framework**: Express.js 5.1
+- **ORM**: Prisma 5.18
+- **Database**: PostgreSQL 16
 - **Authentication**: JWT (jsonwebtoken)
+- **File Upload**: Multer 2.0
+- **Documentation**: Swagger/OpenAPI 3.0
+- **Validation**: bcryptjs for password hashing
+- **Container**: Docker & Docker Compose
+
+## ✨ Key Features Explained
+
+### Quiz System
+
+- **Hierarchical Structure**: Quizzes → Questions → Answers
+- **Categories**: Support for Kuis Harian, Mingguan, Bulanan
+- **Auto Counting**: Question counts automatically aggregated
+- **Correct Answers**: `is_correct` flag to mark right answers
+- **Ordering**: Questions can be ordered within a quiz
+
+### User Profile Management
+
+- **Profile Images**: Upload and manage user profile pictures
+- **Full CRUD**: Users can update profile info and delete accounts
+- **Default Values**: Profile image defaults to empty string on registration
+- **Self-Service**: Users manage their own data
+
+### File Uploads
+
+- **Multiple Contexts**: Missions, Articles, and Profile Images
+- **Rate Limited**: 10 uploads per 15 minutes per IP
+- **Size Limits**: 5MB maximum per file
+- **Type Validation**: Images only (jpg, jpeg, png, gif, webp)
+- **Secure Access**: Files accessed via `/files/:filename` with validation
+- **Storage**: Local filesystem in `/uploads` directory
+- **Security**: Path traversal protection, MIME type validation, filename sanitization
+
+### Leaderboard System
+
+- **Auto Calculation**: Points from quiz sessions + completed missions
+- **Profile Integration**: Includes user profile images
+- **Sorting**: Ranked by total points descending
+- **Transparency**: Shows session and mission points separately
+
+## 📚 Additional Resources
+
 - **Password Hashing**: bcryptjs
 - **Documentation**: Swagger/OpenAPI
 - **Development**: tsx, nodemon

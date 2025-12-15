@@ -8,8 +8,15 @@ export declare class UserMissionRepository {
         mission: {
             id_mission: number;
             title: string;
+            tags: string | null;
             desc: string | null;
+            cover_image: string | null;
+            photo_caption: string | null;
+            author_name: string | null;
+            author_role: string | null;
             points: number | null;
+            highlights: string | null;
+            date_created: Date | null;
             id_creator: number;
         };
     } & {

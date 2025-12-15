@@ -25,15 +25,29 @@ const authService = new AuthService();
  *             properties:
  *               name:
  *                 type: string
- *                 example: John Doe
+ *                 example: John
+ *               last_name:
+ *                 type: string
+ *                 example: Doe
+ *               birth_date:
+ *                 type: string
+ *                 format: date
+ *                 example: 1990-01-15
  *               email:
  *                 type: string
  *                 format: email
  *                 example: john@example.com
+ *               phone:
+ *                 type: string
+ *                 example: 081234567890
  *               password:
  *                 type: string
  *                 format: password
  *                 example: securePassword123
+ *               profile_image:
+ *                 type: string
+ *                 example: ""
+ *                 description: Profile image URL (optional, defaults to empty string. Use PUT /users/:id/profile-image to upload)
  *     responses:
  *       201:
  *         description: User registered successfully

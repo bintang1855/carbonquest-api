@@ -18,4 +18,20 @@ export class AnswerService {
       id_question: questionId,
     });
   }
+
+  async updateAnswer(id: number, data: Partial<CreateAnswerDTO>) {
+    const answer = await this.repository.findById(id);
+    if (!answer) {
+      throw new Error("Answer not found");
+    }
+    return await this.repository.update(id, data);
+  }
+
+  async deleteAnswer(id: number) {
+    const answer = await this.repository.findById(id);
+    if (!answer) {
+      throw new Error("Answer not found");
+    }
+    await this.repository.delete(id);
+  }
 }

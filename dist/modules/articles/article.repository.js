@@ -19,5 +19,16 @@ export class ArticleRepository {
             },
         });
     }
+    async update(id, data) {
+        return await prisma.articles.update({
+            where: { id_article: id },
+            data,
+        });
+    }
+    async delete(id) {
+        await prisma.articles.delete({
+            where: { id_article: id },
+        });
+    }
 }
 //# sourceMappingURL=article.repository.js.map

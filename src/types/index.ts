@@ -30,14 +30,22 @@ export interface AuthenticatedRequest<
 export interface UserDTO {
   id_user: number;
   name: string;
+  last_name?: string | null;
+  birth_date?: Date | null;
   email: string;
+  phone?: string | null;
   password?: string; // Optional in responses
+  profile_image?: string | null;
 }
 
 export interface CreateUserDTO {
   name: string;
+  last_name?: string;
+  birth_date?: string | Date;
   email: string;
+  phone?: string;
   password: string;
+  profile_image?: string;
 }
 
 export interface LoginDTO {
@@ -63,15 +71,28 @@ export interface CreateOrganizationDTO {
 export interface MissionDTO {
   id_mission: number;
   title: string;
+  tags?: string | null;
   desc?: string | null;
+  cover_image?: string | null;
+  photo_caption?: string | null;
+  author_name?: string | null;
+  author_role?: string | null;
   points?: number | null;
+  highlights?: string | null;
+  date_created?: Date | null;
   id_creator: number;
 }
 
 export interface CreateMissionDTO {
   title: string;
+  tags?: string;
   desc?: string;
+  cover_image?: string;
+  photo_caption?: string;
+  author_name?: string;
+  author_role?: string;
   points?: number;
+  highlights?: string;
 }
 
 export interface UserMissionDTO {
@@ -93,29 +114,47 @@ export interface UpdateUserMissionDTO {
   completed_time?: string;
 }
 
+export interface QuizDTO {
+  id_quiz: number;
+  title: string;
+  category?: string | null;
+  total_points?: number | null;
+  id_creator: number;
+  created_at?: Date | null;
+}
+
+export interface CreateQuizDTO {
+  title: string;
+  category?: string;
+  total_points?: number;
+}
+
 export interface QuestionDTO {
   id_question: number;
+  id_quiz: number;
+  content: string;
   points?: number | null;
-  content?: string | null;
-  category?: string | null;
+  order?: number | null;
 }
 
 export interface CreateQuestionDTO {
+  id_quiz: number;
+  content: string;
   points?: number;
-  content?: string;
-  category?: string;
+  order?: number;
 }
 
 export interface AnswerDTO {
   id_answer: number;
-  points?: number | null;
-  desc?: string | null;
   id_question: number;
+  content: string;
+  is_correct: boolean;
 }
 
 export interface CreateAnswerDTO {
-  points?: number;
-  desc?: string;
+  id_question: number;
+  content: string;
+  is_correct: boolean;
 }
 
 export interface SessionDTO {
@@ -142,12 +181,30 @@ export interface UpdateSessionDTO {
 export interface ArticleDTO {
   id_article: number;
   title: string;
+  topic?: string | null;
+  description?: string | null;
   content?: string | null;
+  cover_image?: string | null;
+  photo_caption?: string | null;
+  photo_credit?: string | null;
+  author_name?: string | null;
+  author_role?: string | null;
+  place?: string | null;
+  highlights?: string | null;
   date_created?: Date | null;
   id_author: number;
 }
 
 export interface CreateArticleDTO {
   title: string;
+  topic?: string;
+  description?: string;
   content?: string;
+  cover_image?: string;
+  photo_caption?: string;
+  photo_credit?: string;
+  author_name?: string;
+  author_role?: string;
+  place?: string;
+  highlights?: string;
 }

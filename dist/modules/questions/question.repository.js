@@ -2,18 +2,42 @@ import prisma from "../../prisma/client.js";
 export class QuestionRepository {
     async findAll() {
         return await prisma.questions.findMany({
-            include: { answers: true },
+            include: {
+                answers: true,
+                quiz: true,
+            },
         });
     }
     async findById(id) {
         return await prisma.questions.findUnique({
             where: { id_question: id },
+            include: {
+                answers: true,
+                quiz: true,
+            },
+        });
+    }
+    async findByQuizId(id_quiz) {
+        return await prisma.questions.findMany({
+            where: { id_quiz },
             include: { answers: true },
+            orderBy: { order: "asc" },
         });
     }
     async create(data) {
         return await prisma.questions.create({
             data,
+        });
+    }
+    async update(id, data) {
+        return await prisma.questions.update({
+            where: { id_question: id },
+            data,
+        });
+    }
+    async delete(id) {
+        await prisma.questions.delete({
+            where: { id_question: id },
         });
     }
 }

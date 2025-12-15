@@ -7,9 +7,9 @@ export declare class SessionService {
     getUserSessions(userId: number): Promise<({
         answer: {
             id_answer: number;
-            points: number | null;
-            desc: string | null;
             id_question: number;
+            content: string;
+            is_correct: boolean;
         };
     } & {
         id_session: number;

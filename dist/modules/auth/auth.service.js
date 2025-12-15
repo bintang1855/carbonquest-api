@@ -11,7 +11,7 @@ export class AuthService {
         this.organizationRepository = new OrganizationRepository();
     }
     async registerUser(data) {
-        const { name, email, password } = data;
+        const { name, last_name, birth_date, email, phone, password } = data;
         if (!email || !password || !name) {
             throw new AppError("Name, email, and password are required", 400);
         }
@@ -22,8 +22,12 @@ export class AuthService {
         const hashed = await bcrypt.hash(password, 10);
         const user = await this.userRepository.create({
             name,
+            last_name,
+            birth_date: birth_date ? new Date(birth_date) : undefined,
             email,
+            phone,
             password: hashed,
+            profile_image: "", // Default empty string for profile image
         });
         const token = generateToken({ sub: user.id_user, role: "user" });
         const { password: _, ...userWithoutPassword } = user;

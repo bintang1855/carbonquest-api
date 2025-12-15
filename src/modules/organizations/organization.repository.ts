@@ -23,4 +23,11 @@ export class OrganizationRepository {
       data,
     });
   }
+
+  async updatePassword(id: number, hashedPassword: string): Promise<void> {
+    await prisma.organization.update({
+      where: { id_organisasi: id },
+      data: { password: hashedPassword },
+    });
+  }
 }

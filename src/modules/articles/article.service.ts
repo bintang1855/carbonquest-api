@@ -18,4 +18,24 @@ export class ArticleService {
       id_author: authorId,
     });
   }
+
+  async getArticleById(id: number) {
+    const article = await this.repository.findById(id);
+    if (!article) {
+      throw new Error("Article not found");
+    }
+    return article;
+  }
+
+  async updateArticle(id: number, data: Partial<CreateArticleDTO>) {
+    // Check if article exists
+    await this.getArticleById(id);
+    return await this.repository.update(id, data);
+  }
+
+  async deleteArticle(id: number) {
+    // Check if article exists
+    await this.getArticleById(id);
+    await this.repository.delete(id);
+  }
 }

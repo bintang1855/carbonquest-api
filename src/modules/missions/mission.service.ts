@@ -18,4 +18,24 @@ export class MissionService {
       id_creator: creatorId,
     });
   }
+
+  async getMissionById(id: number) {
+    const mission = await this.repository.findById(id);
+    if (!mission) {
+      throw new Error("Mission not found");
+    }
+    return mission;
+  }
+
+  async updateMission(id: number, data: Partial<CreateMissionDTO>) {
+    // Check if mission exists
+    await this.getMissionById(id);
+    return await this.repository.update(id, data);
+  }
+
+  async deleteMission(id: number) {
+    // Check if mission exists
+    await this.getMissionById(id);
+    await this.repository.delete(id);
+  }
 }
