@@ -35,8 +35,47 @@ export class QuizRepository {
   async create(data: CreateQuizDTO & { id_creator: number }): Promise<QuizDTO> {
     return await prisma.quizzes.create({
       data: {
-        ...data,
+        title: data.title,
+        category: data.category,
+        total_points: data.total_points,
+        id_creator: data.id_creator,
         created_at: new Date(),
+      },
+    });
+  }
+
+  async createWithQuestions(data: CreateQuizDTO & { id_creator: number }) {
+    // Create quiz with nested questions and answers
+    return await prisma.quizzes.create({
+      data: {
+        title: data.title,
+        category: data.category,
+        total_points: data.total_points,
+        id_creator: data.id_creator,
+        created_at: new Date(),
+        questions: {
+          create: data.questions?.map((q, index) => ({
+            content: q.content,
+            points: q.points || 10,
+            order: q.order || index + 1,
+            answers: {
+              create: q.answers.map((a) => ({
+                content: a.content,
+                is_correct: a.is_correct,
+              })),
+            },
+          })),
+        },
+      },
+      include: {
+        questions: {
+          include: {
+            answers: true,
+          },
+          orderBy: {
+            order: "asc",
+          },
+        },
       },
     });
   }
@@ -44,7 +83,11 @@ export class QuizRepository {
   async update(id: number, data: Partial<CreateQuizDTO>): Promise<QuizDTO> {
     return await prisma.quizzes.update({
       where: { id_quiz: id },
-      data,
+      data: {
+        title: data.title,
+        category: data.category,
+        total_points: data.total_points,
+      },
     });
   }
 
@@ -57,6 +100,19 @@ export class QuizRepository {
   async getQuestionCount(id_quiz: number): Promise<number> {
     return await prisma.questions.count({
       where: { id_quiz },
+    });
+  }
+
+  async findAnswerById(id_answer: number) {
+    return await prisma.answers.findUnique({
+      where: { id_answer },
+      include: {
+        question: {
+          include: {
+            answers: true,
+          },
+        },
+      },
     });
   }
 }

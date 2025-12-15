@@ -127,6 +127,31 @@ export interface CreateQuizDTO {
   title: string;
   category?: string;
   total_points?: number;
+  questions?: CreateQuizQuestionDTO[];
+}
+
+export interface CreateQuizQuestionDTO {
+  content: string;
+  points?: number;
+  order?: number;
+  answers: CreateQuizAnswerDTO[];
+}
+
+export interface CreateQuizAnswerDTO {
+  content: string;
+  is_correct: boolean;
+}
+
+export interface SubmitQuizAnswerDTO {
+  id_question: number;
+  id_answer: number;
+}
+
+export interface QuizSubmissionResultDTO {
+  is_correct: boolean;
+  points_earned: number;
+  correct_answer?: string;
+  session_id: number;
 }
 
 export interface QuestionDTO {

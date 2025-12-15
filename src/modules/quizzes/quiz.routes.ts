@@ -1,6 +1,10 @@
 import { NextFunction, Response, Router } from "express";
 import { authMiddleware } from "../../middleware/auth.middleware.js";
-import { AuthenticatedRequest, CreateQuizDTO } from "../../types/index.js";
+import {
+  AuthenticatedRequest,
+  CreateQuizDTO,
+  SubmitQuizAnswerDTO,
+} from "../../types/index.js";
 import { ResponseUtil } from "../../utils/response.js";
 import { QuizService } from "./quiz.service.js";
 
@@ -14,7 +18,7 @@ const quizService = new QuizService();
  *     tags:
  *       - Quizzes
  *     summary: Create a new quiz
- *     description: Create a new quiz topic (organization only)
+ *     description: Create a new quiz with questions and answers in one request (organization only)
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -28,13 +32,46 @@ const quizService = new QuizService();
  *             properties:
  *               title:
  *                 type: string
- *                 example: Kuis Harian
+ *                 example: Kuis Perubahan Iklim
  *               category:
  *                 type: string
- *                 example: Harian
+ *                 example: Mingguan
  *               total_points:
  *                 type: integer
  *                 example: 100
+ *               questions:
+ *                 type: array
+ *                 description: Optional - include questions and answers to create them together
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - content
+ *                     - answers
+ *                   properties:
+ *                     content:
+ *                       type: string
+ *                       example: Apa penyebab utama perubahan iklim?
+ *                     points:
+ *                       type: integer
+ *                       example: 10
+ *                     order:
+ *                       type: integer
+ *                       example: 1
+ *                     answers:
+ *                       type: array
+ *                       minItems: 2
+ *                       items:
+ *                         type: object
+ *                         required:
+ *                           - content
+ *                           - is_correct
+ *                         properties:
+ *                           content:
+ *                             type: string
+ *                             example: Emisi gas rumah kaca
+ *                           is_correct:
+ *                             type: boolean
+ *                             example: true
  *     responses:
  *       201:
  *         description: Quiz created successfully
@@ -222,6 +259,90 @@ router.delete(
       const id = parseInt(req.params.id);
       await quizService.deleteQuiz(id);
       ResponseUtil.success(res, "Quiz deleted successfully", null);
+    } catch (err) {
+      next(err);
+    }
+  }) as any
+);
+
+/**
+ * @openapi
+ * /quizzes/submit-answer:
+ *   post:
+ *     tags:
+ *       - Quizzes
+ *     summary: Submit quiz answer
+ *     description: Submit an answer to a quiz question. Backend automatically calculates score and creates session.
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id_question
+ *               - id_answer
+ *             properties:
+ *               id_question:
+ *                 type: integer
+ *                 example: 1
+ *                 description: The question being answered
+ *               id_answer:
+ *                 type: integer
+ *                 example: 3
+ *                 description: The answer chosen by the user
+ *     responses:
+ *       200:
+ *         description: Answer submitted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Answer submitted successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     is_correct:
+ *                       type: boolean
+ *                       example: true
+ *                       description: Whether the answer is correct
+ *                     points_earned:
+ *                       type: integer
+ *                       example: 10
+ *                       description: Points earned from this answer
+ *                     correct_answer:
+ *                       type: string
+ *                       example: Emisi gas rumah kaca
+ *                       description: The correct answer (only shown if user answered wrong)
+ *                     session_id:
+ *                       type: integer
+ *                       example: 1
+ *                       description: ID of the created session
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - user role required
+ */
+router.post(
+  "/submit-answer",
+  authMiddleware("user") as any,
+  (async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const data: SubmitQuizAnswerDTO = req.body;
+      const result = await quizService.submitAnswer(data, req.user.sub);
+      ResponseUtil.success(res, "Answer submitted successfully", result);
     } catch (err) {
       next(err);
     }
