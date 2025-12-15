@@ -87,6 +87,21 @@ const options: swaggerJsdoc.Options = {
             id_creator: { type: "integer" },
           },
         },
+        UserMission: {
+          type: "object",
+          properties: {
+            id_working: { type: "integer" },
+            id_user: { type: "integer" },
+            id_mission: { type: "integer" },
+            status: { type: "string", nullable: true },
+            points: { type: "integer", nullable: true },
+            completed_time: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+            },
+          },
+        },
         Question: {
           type: "object",
           properties: {
