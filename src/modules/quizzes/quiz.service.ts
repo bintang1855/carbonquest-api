@@ -1,5 +1,6 @@
 import {
   CreateQuizDTO,
+  UpdateQuizWithQuestionsDTO,
   SubmitQuizAnswerDTO,
   QuizSubmissionResultDTO,
 } from "../../types/index.js";
@@ -51,8 +52,15 @@ export class QuizService {
     });
   }
 
-  async updateQuiz(id: number, data: Partial<CreateQuizDTO>) {
+  async updateQuiz(id: number, data: UpdateQuizWithQuestionsDTO) {
     await this.getQuizById(id);
+
+    // If questions are provided, update quiz with nested questions & answers
+    if (data.questions && data.questions.length > 0) {
+      return await this.repository.updateWithQuestions(id, data);
+    }
+
+    // Otherwise update quiz metadata only
     return await this.repository.update(id, data);
   }
 
