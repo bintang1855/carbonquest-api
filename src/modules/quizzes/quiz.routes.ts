@@ -196,10 +196,13 @@ router.get(
  *             properties:
  *               title:
  *                 type: string
+ *                 example: "Updated Climate Quiz"
  *               category:
  *                 type: string
+ *                 example: "Mingguan"
  *               total_points:
  *                 type: integer
+ *                 example: 100
  *     responses:
  *       200:
  *         description: Quiz updated successfully
