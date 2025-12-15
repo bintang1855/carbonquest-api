@@ -44,24 +44,24 @@ router.get(
 
 /**
  * @openapi
- * /me/sessions/weekly-points:
+ * /me/sessions/daily-points:
  *   get:
  *     tags:
  *       - Sessions
- *     summary: Get weekly points history
- *     description: Get weekly points breakdown from missions and quizzes for the authenticated user
+ *     summary: Get daily points history
+ *     description: Get daily points breakdown from missions and quizzes for the authenticated user (last N days)
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: query
- *         name: weeks
+ *         name: days
  *         schema:
  *           type: integer
- *           default: 4
- *         description: Number of weeks to retrieve (default 4)
+ *           default: 7
+ *         description: Number of days to retrieve (default 7)
  *     responses:
  *       200:
- *         description: Weekly points history retrieved successfully
+ *         description: Daily points history retrieved successfully
  *         content:
  *           application/json:
  *             schema:
@@ -72,7 +72,7 @@ router.get(
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: Weekly points history retrieved successfully
+ *                   example: Daily points history retrieved successfully
  *                 data:
  *                   type: array
  *                   items:
@@ -81,8 +81,8 @@ router.get(
  *                       week:
  *                         type: string
  *                         format: date
- *                         example: "2024-12-08"
- *                         description: Start date of the week (Sunday)
+ *                         example: "2024-12-24"
+ *                         description: Date in YYYY-MM-DD format
  *                       mission_points:
  *                         type: integer
  *                         example: 150
@@ -94,17 +94,17 @@ router.get(
  *                         example: 350
  *                       missions_completed:
  *                         type: integer
- *                         example: 5
+ *                         example: 3
  *                       quizzes_completed:
  *                         type: integer
- *                         example: 3
+ *                         example: 2
  *       401:
  *         description: Unauthorized
  *       403:
  *         description: Forbidden - user role required
  */
 router.get(
-  "/sessions/weekly-points",
+  "/sessions/daily-points",
   authMiddleware("user") as any,
   (async (
     req: AuthenticatedRequest,
@@ -112,15 +112,15 @@ router.get(
     next: NextFunction
   ): Promise<void> => {
     try {
-      const weeks = req.query.weeks ? Number(req.query.weeks) : 4;
-      const weeklyPoints = await sessionService.getWeeklyPointsHistory(
+      const days = req.query.days ? Number(req.query.days) : 7;
+      const dailyPoints = await sessionService.getWeeklyPointsHistory(
         req.user.sub,
-        weeks
+        days
       );
       ResponseUtil.success(
         res,
-        "Weekly points history retrieved successfully",
-        weeklyPoints
+        "Daily points history retrieved successfully",
+        dailyPoints
       );
     } catch (err) {
       next(err);

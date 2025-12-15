@@ -39,67 +39,75 @@ export class SessionService {
 
   async getWeeklyPointsHistory(
     userId: number,
-    weeks: number = 4
+    days: number = 7
   ): Promise<WeeklyPointsDTO[]> {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - (days - 1)); // Get last N days
+    startDate.setHours(0, 0, 0, 0); // Start of day
+
     const { quizSessions, missionCompletions } =
-      await this.repository.getWeeklyPoints(userId, weeks);
+      await this.repository.getWeeklyPoints(userId, Math.ceil(days / 7));
 
-    // Group by week
-    const weeklyData = new Map<string, WeeklyPointsDTO>();
+    // Group by day
+    const dailyData = new Map<string, WeeklyPointsDTO>();
 
-    // Helper function to get week key (ISO week format)
-    const getWeekKey = (date: Date): string => {
+    // Helper function to get day key (YYYY-MM-DD format)
+    const getDayKey = (date: Date): string => {
       const d = new Date(date);
-      const weekStart = new Date(d);
-      weekStart.setDate(d.getDate() - d.getDay()); // Start of week (Sunday)
-      return weekStart.toISOString().split("T")[0];
+      d.setHours(0, 0, 0, 0);
+      return d.toISOString().split("T")[0];
     };
+
+    // Initialize all days with 0 values
+    for (let i = 0; i < days; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+      const dayKey = getDayKey(date);
+      dailyData.set(dayKey, {
+        week: dayKey, // Keeping property name for backward compatibility
+        mission_points: 0,
+        quiz_points: 0,
+        total_points: 0,
+        missions_completed: 0,
+        quizzes_completed: 0,
+      });
+    }
 
     // Process quiz sessions
     quizSessions.forEach((session) => {
       if (session.end_time) {
-        const weekKey = getWeekKey(session.end_time);
-        if (!weeklyData.has(weekKey)) {
-          weeklyData.set(weekKey, {
-            week: weekKey,
-            mission_points: 0,
-            quiz_points: 0,
-            total_points: 0,
-            missions_completed: 0,
-            quizzes_completed: 0,
-          });
+        const dayKey = getDayKey(session.end_time);
+        if (dailyData.has(dayKey)) {
+          const dayData = dailyData.get(dayKey)!;
+          dayData.quiz_points += session.total_points || 0;
+          dayData.quizzes_completed += 1;
+          dayData.total_points = dayData.mission_points + dayData.quiz_points;
         }
-        const weekData = weeklyData.get(weekKey)!;
-        weekData.quiz_points += session.total_points || 0;
-        weekData.quizzes_completed += 1;
-        weekData.total_points = weekData.mission_points + weekData.quiz_points;
       }
     });
 
     // Process mission completions
     missionCompletions.forEach((mission) => {
       if (mission.completed_time) {
-        const weekKey = getWeekKey(mission.completed_time);
-        if (!weeklyData.has(weekKey)) {
-          weeklyData.set(weekKey, {
-            week: weekKey,
-            mission_points: 0,
-            quiz_points: 0,
-            total_points: 0,
-            missions_completed: 0,
-            quizzes_completed: 0,
-          });
+        const dayKey = getDayKey(mission.completed_time);
+        if (dailyData.has(dayKey)) {
+          const dayData = dailyData.get(dayKey)!;
+          dayData.mission_points += mission.points || 0;
+          dayData.missions_completed += 1;
+          dayData.total_points = dayData.mission_points + dayData.quiz_points;
         }
-        const weekData = weeklyData.get(weekKey)!;
-        weekData.mission_points += mission.points || 0;
-        weekData.missions_completed += 1;
-        weekData.total_points = weekData.mission_points + weekData.quiz_points;
       }
     });
 
-    // Convert to array and sort by week (newest first)
-    return Array.from(weeklyData.values()).sort((a, b) =>
-      b.week.localeCompare(a.week)
+    // Convert to array and sort by date (oldest first for chart display)
+    return Array.from(dailyData.values()).sort((a, b) =>
+      a.week.localeCompare(b.week)
+    );
+  }
+    // Convert to array and sort by date (oldest first for chart display)
+    return Array.from(dailyData.values()).sort((a, b) =>
+      a.week.localeCompare(b.week)
     );
   }
 }
