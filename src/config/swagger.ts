@@ -91,18 +91,150 @@ const options: swaggerJsdoc.Options = {
           type: "object",
           properties: {
             id_question: { type: "integer" },
+            id_quiz: { type: "integer" },
+            content: { type: "string" },
             points: { type: "integer", nullable: true },
-            content: { type: "string", nullable: true },
-            category: { type: "string", nullable: true },
+            order: { type: "integer", nullable: true },
           },
         },
         Answer: {
           type: "object",
           properties: {
             id_answer: { type: "integer" },
-            points: { type: "integer", nullable: true },
-            desc: { type: "string", nullable: true },
             id_question: { type: "integer" },
+            content: { type: "string" },
+            is_correct: { type: "boolean" },
+          },
+        },
+        Quiz: {
+          type: "object",
+          properties: {
+            id_quiz: { type: "integer" },
+            title: { type: "string" },
+            category: { type: "string", nullable: true },
+            total_points: { type: "integer", nullable: true },
+            id_creator: { type: "integer" },
+            created_at: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+            },
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id_question: { type: "integer" },
+                  content: { type: "string" },
+                  points: { type: "integer" },
+                  order: { type: "integer" },
+                  answers: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/Answer" },
+                  },
+                },
+              },
+            },
+          },
+        },
+        CreateQuizWithQuestions: {
+          type: "object",
+          required: ["title"],
+          properties: {
+            title: {
+              type: "string",
+              example: "Quiz Perubahan Iklim",
+            },
+            category: {
+              type: "string",
+              example: "Mingguan",
+            },
+            total_points: {
+              type: "integer",
+              example: 100,
+            },
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["content", "answers"],
+                properties: {
+                  content: {
+                    type: "string",
+                    example: "Apa penyebab utama perubahan iklim?",
+                  },
+                  points: {
+                    type: "integer",
+                    example: 10,
+                  },
+                  order: {
+                    type: "integer",
+                    example: 1,
+                  },
+                  answers: {
+                    type: "array",
+                    minItems: 2,
+                    items: {
+                      type: "object",
+                      required: ["content", "is_correct"],
+                      properties: {
+                        content: {
+                          type: "string",
+                          example: "Emisi gas rumah kaca",
+                        },
+                        is_correct: {
+                          type: "boolean",
+                          example: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        SubmitQuizAnswer: {
+          type: "object",
+          required: ["id_question", "id_answer"],
+          properties: {
+            id_question: {
+              type: "integer",
+              example: 1,
+              description: "The question being answered",
+            },
+            id_answer: {
+              type: "integer",
+              example: 3,
+              description: "The answer chosen by the user",
+            },
+          },
+        },
+        QuizSubmissionResult: {
+          type: "object",
+          properties: {
+            is_correct: {
+              type: "boolean",
+              example: true,
+              description: "Whether the answer is correct",
+            },
+            points_earned: {
+              type: "integer",
+              example: 10,
+              description: "Points earned from this answer",
+            },
+            correct_answer: {
+              type: "string",
+              example: "Emisi gas rumah kaca",
+              nullable: true,
+              description:
+                "The correct answer (only shown if user answered wrong)",
+            },
+            session_id: {
+              type: "integer",
+              example: 1,
+              description: "ID of the created session",
+            },
           },
         },
         Session: {
@@ -112,8 +244,41 @@ const options: swaggerJsdoc.Options = {
             start_time: { type: "string", format: "date-time", nullable: true },
             end_time: { type: "string", format: "date-time", nullable: true },
             total_points: { type: "integer", nullable: true },
+            session_type: { type: "string", nullable: true },
             id_user: { type: "integer" },
             id_answer: { type: "integer" },
+            id_quiz: { type: "integer", nullable: true },
+          },
+        },
+        WeeklyPoints: {
+          type: "object",
+          properties: {
+            week: {
+              type: "string",
+              format: "date",
+              example: "2024-12-08",
+              description: "Start date of the week (Sunday)",
+            },
+            mission_points: {
+              type: "integer",
+              example: 150,
+            },
+            quiz_points: {
+              type: "integer",
+              example: 200,
+            },
+            total_points: {
+              type: "integer",
+              example: 350,
+            },
+            missions_completed: {
+              type: "integer",
+              example: 5,
+            },
+            quizzes_completed: {
+              type: "integer",
+              example: 3,
+            },
           },
         },
         Article: {
