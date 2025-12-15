@@ -75,6 +75,76 @@ const quizService = new QuizService();
  *     responses:
  *       201:
  *         description: Quiz created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Quiz created successfully
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id_quiz:
+ *                       type: integer
+ *                       example: 4
+ *                     title:
+ *                       type: string
+ *                       example: Kuis Perubahan Iklim
+ *                     category:
+ *                       type: string
+ *                       example: Mingguan
+ *                     total_points:
+ *                       type: integer
+ *                       example: 100
+ *                     id_creator:
+ *                       type: integer
+ *                       example: 1
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                       example: "2025-12-15T10:24:21.678Z"
+ *                     questions:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id_question:
+ *                             type: integer
+ *                             example: 4
+ *                           id_quiz:
+ *                             type: integer
+ *                             example: 4
+ *                           content:
+ *                             type: string
+ *                             example: Apa penyebab utama perubahan iklim?
+ *                           points:
+ *                             type: integer
+ *                             example: 10
+ *                           order:
+ *                             type: integer
+ *                             example: 1
+ *                           answers:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 id_answer:
+ *                                   type: integer
+ *                                   example: 10
+ *                                 id_question:
+ *                                   type: integer
+ *                                   example: 4
+ *                                 content:
+ *                                   type: string
+ *                                   example: Emisi gas rumah kaca
+ *                                 is_correct:
+ *                                   type: boolean
+ *                                   example: true
  *       401:
  *         description: Unauthorized
  *       403:
@@ -111,6 +181,96 @@ router.post(
  *     responses:
  *       200:
  *         description: Quizzes retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Quizzes retrieved successfully
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id_quiz:
+ *                         type: integer
+ *                         example: 4
+ *                       title:
+ *                         type: string
+ *                         example: Kuis Perubahan Iklim
+ *                       category:
+ *                         type: string
+ *                         example: Mingguan
+ *                       total_points:
+ *                         type: integer
+ *                         example: 100
+ *                       id_creator:
+ *                         type: integer
+ *                         example: 1
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                         example: "2025-12-15T10:24:21.678Z"
+ *                       creator:
+ *                         type: object
+ *                         properties:
+ *                           id_organisasi:
+ *                             type: integer
+ *                             example: 1
+ *                           name:
+ *                             type: string
+ *                             example: Green Corp
+ *                           email:
+ *                             type: string
+ *                             example: info@greencorp.com
+ *                           desc:
+ *                             type: string
+ *                             example: Environmental sustainability organization
+ *                       questions:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id_question:
+ *                               type: integer
+ *                               example: 4
+ *                             id_quiz:
+ *                               type: integer
+ *                               example: 4
+ *                             content:
+ *                               type: string
+ *                               example: Apa penyebab utama perubahan iklim?
+ *                             points:
+ *                               type: integer
+ *                               example: 10
+ *                             order:
+ *                               type: integer
+ *                               example: 1
+ *                             answers:
+ *                               type: array
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   id_answer:
+ *                                     type: integer
+ *                                     example: 10
+ *                                   id_question:
+ *                                     type: integer
+ *                                     example: 4
+ *                                   content:
+ *                                     type: string
+ *                                     example: Emisi gas rumah kaca
+ *                                   is_correct:
+ *                                     type: boolean
+ *                                     example: true
+ *                       question_count:
+ *                         type: integer
+ *                         example: 1
  *       401:
  *         description: Unauthorized
  */
