@@ -208,7 +208,7 @@ export interface UpdateSessionDTO {
 }
 
 export interface WeeklyPointsDTO {
-  week: string;
+  week: string; // Date in YYYY-MM-DD format (represents a single day)
   mission_points: number;
   quiz_points: number;
   total_points: number;

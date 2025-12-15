@@ -271,8 +271,9 @@ const options: swaggerJsdoc.Options = {
             week: {
               type: "string",
               format: "date",
-              example: "2024-12-08",
-              description: "Start date of the week (Sunday)",
+              example: "2024-12-24",
+              description:
+                "Date in YYYY-MM-DD format (represents a single day)",
             },
             mission_points: {
               type: "integer",
@@ -288,11 +289,11 @@ const options: swaggerJsdoc.Options = {
             },
             missions_completed: {
               type: "integer",
-              example: 5,
+              example: 3,
             },
             quizzes_completed: {
               type: "integer",
-              example: 3,
+              example: 2,
             },
           },
         },
