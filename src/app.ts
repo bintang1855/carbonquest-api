@@ -1,9 +1,9 @@
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
-import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 import { errorHandler } from "./middleware/error.middleware.js";
+import { authLimiter, limiter } from "./middleware/rate-limit.middleware.js";
 
 // Import routes
 import answerRoutes from "./modules/answers/answer.routes.js";
@@ -21,32 +21,8 @@ import userRoutes from "./modules/users/user.routes.js";
 export const createApp = (): Application => {
   const app = express();
 
-  // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxyyy
+  // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxy
   app.set("trust proxy", 1);
-
-  // Rate limiter - membatasi request per IP
-  const limiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 menit
-    max: 10000, // max 10 request per 1 menit per IP
-    message: {
-      success: false,
-      message: "Too many requests from this IP, please try again later.",
-    },
-    standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-    legacyHeaders: false, // Disable `X-RateLimit-*` headers
-  });
-
-  // Rate limiter khusus untuk auth (lebih ketat)
-  const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 menit
-    max: 5, // max 5 login attempts per 15 menit per IP
-    message: {
-      success: false,
-      message: "Too many login attempts from this IP, please try again later.",
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-  });
 
   // Global middleware
   app.use(limiter); // Apply rate limit ke semua routes
