@@ -151,7 +151,7 @@ router.put(
  *         description: Forbidden - user role required
  */
 router.get(
-  "/me/sessions",
+  "/sessions",
   authMiddleware("user") as any,
   (async (
     req: AuthenticatedRequest,
@@ -229,7 +229,7 @@ router.get(
  *         description: Forbidden - user role required
  */
 router.get(
-  "/me/sessions/weekly-points",
+  "/sessions/weekly-points",
   authMiddleware("user") as any,
   (async (
     req: AuthenticatedRequest,
