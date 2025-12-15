@@ -125,8 +125,8 @@ model User_Missions {
   points         Int?
   completed_time DateTime?
 
-  user    Users    @relation(fields: [id_user], references: [id_user])
-  mission Missions @relation(fields: [id_mission], references: [id_mission])
+  user    Users    @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  mission Missions @relation(fields: [id_mission], references: [id_mission], onDelete: Cascade)
 
   @@map("User_Missions")
 }
