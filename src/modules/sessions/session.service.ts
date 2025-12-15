@@ -105,9 +105,4 @@ export class SessionService {
       a.week.localeCompare(b.week)
     );
   }
-    // Convert to array and sort by date (oldest first for chart display)
-    return Array.from(dailyData.values()).sort((a, b) =>
-      a.week.localeCompare(b.week)
-    );
-  }
 }
