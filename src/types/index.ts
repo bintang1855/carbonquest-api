@@ -162,12 +162,16 @@ export interface SessionDTO {
   start_time?: Date | null;
   end_time?: Date | null;
   total_points?: number | null;
+  session_type?: string | null;
   id_user: number;
   id_answer: number;
+  id_quiz?: number | null;
 }
 
 export interface CreateSessionDTO {
   id_answer: number;
+  id_quiz?: number;
+  session_type?: string;
   total_points?: number;
   start_time?: string;
   end_time?: string;
@@ -176,6 +180,15 @@ export interface CreateSessionDTO {
 export interface UpdateSessionDTO {
   total_points?: number;
   end_time?: string;
+}
+
+export interface WeeklyPointsDTO {
+  week: string;
+  mission_points: number;
+  quiz_points: number;
+  total_points: number;
+  missions_completed: number;
+  quizzes_completed: number;
 }
 
 export interface ArticleDTO {

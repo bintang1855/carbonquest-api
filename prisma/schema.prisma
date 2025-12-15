@@ -49,6 +49,7 @@ model Quizzes {
 
   creator   Organization @relation(fields: [id_creator], references: [id_organisasi])
   questions Questions[]
+  sessions  Sessions[]
 
   @@map("Quizzes")
 }
@@ -83,12 +84,15 @@ model Sessions {
   start_time   DateTime?
   end_time     DateTime?
   total_points Int?
+  session_type String?  @db.VarChar(50) // 'quiz' atau 'other'
 
   id_user   Int
   id_answer Int
+  id_quiz   Int?
 
-  user   Users   @relation(fields: [id_user], references: [id_user])
-  answer Answers @relation(fields: [id_answer], references: [id_answer])
+  user   Users    @relation(fields: [id_user], references: [id_user])
+  answer Answers  @relation(fields: [id_answer], references: [id_answer])
+  quiz   Quizzes? @relation(fields: [id_quiz], references: [id_quiz])
 
   @@map("Sessions")
 }
