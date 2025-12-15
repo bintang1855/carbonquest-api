@@ -120,6 +120,15 @@ export class QuizRepository {
     if (data.questions) {
       for (const [index, q] of data.questions.entries()) {
         if (q.id_question) {
+          // Check if question exists before updating
+          const existingQuestion = await prisma.questions.findUnique({
+            where: { id_question: q.id_question },
+          });
+
+          if (!existingQuestion) {
+            throw new Error(`Question with id ${q.id_question} not found`);
+          }
+
           // Update existing question
           updatedQuestionIds.push(q.id_question);
 
@@ -143,15 +152,31 @@ export class QuizRepository {
           // Process answers
           for (const a of q.answers) {
             if (a.id_answer) {
-              // Update existing answer
-              updatedAnswerIds.push(a.id_answer);
-              await prisma.answers.update({
+              // Check if answer exists before updating
+              const existingAnswer = await prisma.answers.findUnique({
                 where: { id_answer: a.id_answer },
-                data: {
-                  content: a.content,
-                  is_correct: a.is_correct,
-                },
               });
+
+              if (existingAnswer) {
+                // Update existing answer only if it exists
+                updatedAnswerIds.push(a.id_answer);
+                await prisma.answers.update({
+                  where: { id_answer: a.id_answer },
+                  data: {
+                    content: a.content,
+                    is_correct: a.is_correct,
+                  },
+                });
+              } else {
+                // Create new answer if id_answer doesn't exist (treat as new)
+                await prisma.answers.create({
+                  data: {
+                    id_question: q.id_question,
+                    content: a.content,
+                    is_correct: a.is_correct,
+                  },
+                });
+              }
             } else {
               // Create new answer
               await prisma.answers.create({
