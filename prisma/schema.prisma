@@ -90,9 +90,9 @@ model Sessions {
   id_answer Int
   id_quiz   Int?
 
-  user   Users    @relation(fields: [id_user], references: [id_user])
-  answer Answers  @relation(fields: [id_answer], references: [id_answer])
-  quiz   Quizzes? @relation(fields: [id_quiz], references: [id_quiz])
+  user   Users    @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  answer Answers  @relation(fields: [id_answer], references: [id_answer], onDelete: Cascade)
+  quiz   Quizzes? @relation(fields: [id_quiz], references: [id_quiz], onDelete: SetNull)
 
   @@map("Sessions")
 }
