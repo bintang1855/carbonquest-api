@@ -6,13 +6,11 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import { authLimiter, limiter } from "./middleware/rate-limit.middleware.js";
 
 // Import routes
-import answerRoutes from "./modules/answers/answer.routes.js";
 import articleRoutes from "./modules/articles/article.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import fileRoutes from "./modules/files/file.routes.js";
 import missionRoutes from "./modules/missions/mission.routes.js";
 import organizationRoutes from "./modules/organizations/organization.routes.js";
-import questionRoutes from "./modules/questions/question.routes.js";
 import quizRoutes from "./modules/quizzes/quiz.routes.js";
 import sessionRoutes from "./modules/sessions/session.routes.js";
 import userMissionRoutes from "./modules/user-missions/user-mission.routes.js";
@@ -78,10 +76,7 @@ export const createApp = (): Application => {
   app.use("/missions", missionRoutes);
   app.use("/user-missions", userMissionRoutes);
   app.use("/quizzes", quizRoutes);
-  app.use("/questions", questionRoutes);
-  app.use("/", answerRoutes); // Answer routes include /questions/:id/answers
-  app.use("/sessions", sessionRoutes);
-  app.use("/me", sessionRoutes); // /me/sessions
+  app.use("/me", sessionRoutes); // /me/sessions & /me/sessions/weekly-points
   app.use("/me", userMissionRoutes); // /me/missions
   app.use("/articles", articleRoutes);
 
