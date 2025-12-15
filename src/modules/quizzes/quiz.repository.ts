@@ -1,5 +1,9 @@
 import prisma from "../../prisma/client.js";
-import { CreateQuizDTO, QuizDTO } from "../../types/index.js";
+import {
+  CreateQuizDTO,
+  QuizDTO,
+  UpdateQuizWithQuestionsDTO,
+} from "../../types/index.js";
 
 export class QuizRepository {
   async findAll() {
@@ -89,6 +93,122 @@ export class QuizRepository {
         total_points: data.total_points,
       },
     });
+  }
+
+  async updateWithQuestions(id: number, data: UpdateQuizWithQuestionsDTO) {
+    // First, update quiz metadata
+    await prisma.quizzes.update({
+      where: { id_quiz: id },
+      data: {
+        title: data.title,
+        category: data.category,
+        total_points: data.total_points,
+      },
+    });
+
+    // Get all existing question IDs for this quiz
+    const existingQuestions = await prisma.questions.findMany({
+      where: { id_quiz: id },
+      select: { id_question: true },
+    });
+    const existingQuestionIds = existingQuestions.map((q) => q.id_question);
+
+    // Track which questions are being updated/kept
+    const updatedQuestionIds: number[] = [];
+
+    // Process each question
+    if (data.questions) {
+      for (const [index, q] of data.questions.entries()) {
+        if (q.id_question) {
+          // Update existing question
+          updatedQuestionIds.push(q.id_question);
+
+          await prisma.questions.update({
+            where: { id_question: q.id_question },
+            data: {
+              content: q.content,
+              points: q.points,
+              order: q.order || index + 1,
+            },
+          });
+
+          // Get existing answer IDs for this question
+          const existingAnswers = await prisma.answers.findMany({
+            where: { id_question: q.id_question },
+            select: { id_answer: true },
+          });
+          const existingAnswerIds = existingAnswers.map((a) => a.id_answer);
+          const updatedAnswerIds: number[] = [];
+
+          // Process answers
+          for (const a of q.answers) {
+            if (a.id_answer) {
+              // Update existing answer
+              updatedAnswerIds.push(a.id_answer);
+              await prisma.answers.update({
+                where: { id_answer: a.id_answer },
+                data: {
+                  content: a.content,
+                  is_correct: a.is_correct,
+                },
+              });
+            } else {
+              // Create new answer
+              await prisma.answers.create({
+                data: {
+                  id_question: q.id_question,
+                  content: a.content,
+                  is_correct: a.is_correct,
+                },
+              });
+            }
+          }
+
+          // Delete answers that are no longer present
+          const answersToDelete = existingAnswerIds.filter(
+            (id) => !updatedAnswerIds.includes(id)
+          );
+          if (answersToDelete.length > 0) {
+            await prisma.answers.deleteMany({
+              where: {
+                id_answer: { in: answersToDelete },
+              },
+            });
+          }
+        } else {
+          // Create new question with answers
+          await prisma.questions.create({
+            data: {
+              id_quiz: id,
+              content: q.content,
+              points: q.points || 10,
+              order: q.order || index + 1,
+              answers: {
+                create: q.answers.map((a) => ({
+                  content: a.content,
+                  is_correct: a.is_correct,
+                })),
+              },
+            },
+          });
+        }
+      }
+    }
+
+    // Delete questions that are no longer present
+    const questionsToDelete = existingQuestionIds.filter(
+      (id) => !updatedQuestionIds.includes(id)
+    );
+    if (questionsToDelete.length > 0) {
+      await prisma.questions.deleteMany({
+        where: {
+          id_question: { in: questionsToDelete },
+        },
+      });
+    }
+
+    // Return updated quiz with all relations
+    return await this.findById(id);
   }
 
   async delete(id: number): Promise<void> {

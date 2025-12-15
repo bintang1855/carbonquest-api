@@ -137,6 +137,27 @@ export interface CreateQuizQuestionDTO {
   answers: CreateQuizAnswerDTO[];
 }
 
+export interface UpdateQuizWithQuestionsDTO {
+  title?: string;
+  category?: string;
+  total_points?: number;
+  questions?: UpdateQuizQuestionDTO[];
+}
+
+export interface UpdateQuizQuestionDTO {
+  id_question?: number; // If provided, update existing; if not, create new
+  content: string;
+  points?: number;
+  order?: number;
+  answers: UpdateQuizAnswerDTO[];
+}
+
+export interface UpdateQuizAnswerDTO {
+  id_answer?: number; // If provided, update existing; if not, create new
+  content: string;
+  is_correct: boolean;
+}
+
 export interface CreateQuizAnswerDTO {
   content: string;
   is_correct: boolean;

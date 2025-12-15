@@ -177,8 +177,8 @@ router.get(
  *   put:
  *     tags:
  *       - Quizzes
- *     summary: Update a quiz
- *     description: Update an existing quiz (organization only)
+ *     summary: Update a quiz with questions
+ *     description: Update an existing quiz including questions and answers (organization only)
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -203,6 +203,47 @@ router.get(
  *               total_points:
  *                 type: integer
  *                 example: 100
+ *               questions:
+ *                 type: array
+ *                 description: Optional - include to update questions. Omit id_question to create new, include id_question to update existing
+ *                 items:
+ *                   type: object
+ *                   required:
+ *                     - content
+ *                     - answers
+ *                   properties:
+ *                     id_question:
+ *                       type: integer
+ *                       description: Include to update existing question, omit to create new
+ *                       example: 1
+ *                     content:
+ *                       type: string
+ *                       example: "Updated: What is carbon footprint?"
+ *                     points:
+ *                       type: integer
+ *                       example: 15
+ *                     order:
+ *                       type: integer
+ *                       example: 1
+ *                     answers:
+ *                       type: array
+ *                       minItems: 2
+ *                       items:
+ *                         type: object
+ *                         required:
+ *                           - content
+ *                           - is_correct
+ *                         properties:
+ *                           id_answer:
+ *                             type: integer
+ *                             description: Include to update existing answer, omit to create new
+ *                             example: 1
+ *                           content:
+ *                             type: string
+ *                             example: "Updated answer content"
+ *                           is_correct:
+ *                             type: boolean
+ *                             example: true
  *     responses:
  *       200:
  *         description: Quiz updated successfully
@@ -219,7 +260,7 @@ router.put(
   ): Promise<void> => {
     try {
       const id = parseInt(req.params.id);
-      const data: Partial<CreateQuizDTO> = req.body;
+      const data = req.body;
       const quiz = await quizService.updateQuiz(id, data);
       ResponseUtil.success(res, "Quiz updated successfully", quiz);
     } catch (err) {
