@@ -22,16 +22,45 @@ const storage = multer.diskStorage({
 
 // Filter file types (hanya gambar)
 const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-  const mimetype = allowedTypes.test(file.mimetype);
+  // Debug log untuk troubleshooting
+  console.log("Upload attempt:", {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    fieldname: file.fieldname,
+  });
 
-  if (mimetype && extname) {
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
+  const allowedExtensions = /jpeg|jpg|png|gif|webp/;
+
+  // Check MIME type
+  const mimetypeValid = allowedMimeTypes.includes(file.mimetype.toLowerCase());
+
+  // Check extension (jika ada)
+  const extname = file.originalname
+    ? allowedExtensions.test(path.extname(file.originalname).toLowerCase())
+    : false;
+
+  // Accept jika MIME type valid ATAU extension valid
+  // Flutter sering send tanpa proper extension, jadi MIME type lebih reliable
+  if (mimetypeValid || extname) {
+    console.log("✅ File accepted");
     return cb(null, true);
   } else {
-    cb(new Error("Only image files are allowed!"));
+    console.log("❌ File rejected:", {
+      mimetype: file.mimetype,
+      originalname: file.originalname,
+    });
+    cb(
+      new Error(
+        `Only image files are allowed! Received mimetype: ${file.mimetype}`
+      )
+    );
   }
 };
 
