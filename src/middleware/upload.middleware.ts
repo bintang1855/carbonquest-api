@@ -22,13 +22,6 @@ const storage = multer.diskStorage({
 
 // Filter file types (hanya gambar)
 const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
-  // Debug log untuk troubleshooting
-  console.log("Upload attempt:", {
-    originalname: file.originalname,
-    mimetype: file.mimetype,
-    fieldname: file.fieldname,
-  });
-
   const allowedMimeTypes = [
     "image/jpeg",
     "image/jpg",
@@ -49,13 +42,8 @@ const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
   // Accept jika MIME type valid ATAU extension valid
   // Flutter sering send tanpa proper extension, jadi MIME type lebih reliable
   if (mimetypeValid || extname) {
-    console.log("✅ File accepted");
     return cb(null, true);
   } else {
-    console.log("❌ File rejected:", {
-      mimetype: file.mimetype,
-      originalname: file.originalname,
-    });
     cb(
       new Error(
         `Only image files are allowed! Received mimetype: ${file.mimetype}`
@@ -69,6 +57,6 @@ export const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Max 5MB
+    fileSize: 30 * 1024 * 1024, // Max 30MB
   },
 });
