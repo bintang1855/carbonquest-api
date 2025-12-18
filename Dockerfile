@@ -1,6 +1,10 @@
 # Dockerfile
 FROM node:22
 
+# Set timezone to Asia/Jakarta
+ENV TZ=Asia/Jakarta
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 WORKDIR /app
 
 # install dependencies
