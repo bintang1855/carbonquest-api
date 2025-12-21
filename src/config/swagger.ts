@@ -329,10 +329,10 @@ const options: swaggerJsdoc.Options = {
     ],
   },
   apis: [
-    "./dist/modules/**/*.routes.js",
+    "./dist/routes/*.routes.js",
     "./dist/app.js",
     // Fallback untuk development
-    "./src/modules/**/*.routes.ts",
+    "./src/routes/*.routes.ts",
     "./src/app.ts",
   ],
 };
