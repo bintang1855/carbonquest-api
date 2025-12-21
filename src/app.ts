@@ -6,15 +6,15 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import { authLimiter, limiter } from "./middleware/rate-limit.middleware.js";
 
 // Import routes
-import articleRoutes from "./modules/articles/article.routes.js";
-import authRoutes from "./modules/auth/auth.routes.js";
-import fileRoutes from "./modules/files/file.routes.js";
-import missionRoutes from "./modules/missions/mission.routes.js";
-import organizationRoutes from "./modules/organizations/organization.routes.js";
-import quizRoutes from "./modules/quizzes/quiz.routes.js";
-import sessionRoutes from "./modules/sessions/session.routes.js";
-import userMissionRoutes from "./modules/user-missions/user-mission.routes.js";
-import userRoutes from "./modules/users/user.routes.js";
+import articleRoutes from "./routes/article.routes.js";
+import authRoutes from "./routes/auth.routes.js";
+import fileRoutes from "./routes/file.routes.js";
+import missionRoutes from "./routes/mission.routes.js";
+import organizationRoutes from "./routes/organization.routes.js";
+import quizRoutes from "./routes/quiz.routes.js";
+import sessionRoutes from "./routes/session.routes.js";
+import userMissionRoutes from "./routes/user-mission.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 export const createApp = (): Application => {
   const app = express();
