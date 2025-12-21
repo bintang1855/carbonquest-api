@@ -6,6 +6,7 @@ import {
 } from "../types/index.js";
 import { QuizRepository } from "../repositories/quiz.repository.js";
 import { SessionRepository } from "../repositories/session.repository.js";
+import { AppError } from "../middleware/error.middleware.js";
 
 export class QuizService {
   private repository: QuizRepository;
@@ -18,8 +19,6 @@ export class QuizService {
 
   async getAllQuizzes() {
     const quizzes = await this.repository.findAll();
-
-    // Add question count to each quiz
     return await Promise.all(
       quizzes.map(async (quiz) => ({
         ...quiz,
@@ -31,36 +30,29 @@ export class QuizService {
   async getQuizById(id: number) {
     const quiz = await this.repository.findById(id);
     if (!quiz) {
-      throw new Error("Quiz not found");
+      throw new AppError("Quiz not found", 404);
     }
     return quiz;
   }
 
   async createQuiz(data: CreateQuizDTO, creatorId: number) {
-    // If questions are provided, create quiz with nested questions & answers
-    if (data.questions && data.questions.length > 0) {
-      return await this.repository.createWithQuestions({
-        ...data,
-        id_creator: creatorId,
-      });
+    const hasQuestions = data.questions && data.questions.length > 0;
+
+    if (hasQuestions) {
+      return await this.repository.createWithQuestions({ ...data, id_creator: creatorId });
     }
 
-    // Otherwise create quiz only
-    return await this.repository.create({
-      ...data,
-      id_creator: creatorId,
-    });
+    return await this.repository.create({ ...data, id_creator: creatorId });
   }
 
   async updateQuiz(id: number, data: UpdateQuizWithQuestionsDTO) {
     await this.getQuizById(id);
+    const hasQuestions = data.questions && data.questions.length > 0;
 
-    // If questions are provided, update quiz with nested questions & answers
-    if (data.questions && data.questions.length > 0) {
+    if (hasQuestions) {
       return await this.repository.updateWithQuestions(id, data);
     }
 
-    // Otherwise update quiz metadata only
     return await this.repository.update(id, data);
   }
 
@@ -69,45 +61,20 @@ export class QuizService {
     await this.repository.delete(id);
   }
 
-  async submitAnswer(
-    data: SubmitQuizAnswerDTO,
-    userId: number
-  ): Promise<QuizSubmissionResultDTO> {
-    // Get answer with question details
+  async submitAnswer(data: SubmitQuizAnswerDTO, userId: number): Promise<QuizSubmissionResultDTO> {
     const answer = await this.repository.findAnswerById(data.id_answer);
 
     if (!answer) {
-      throw new Error("Answer not found");
+      throw new AppError("Answer not found", 404);
     }
 
-    // Check if answer belongs to the question
     if (answer.id_question !== data.id_question) {
-      throw new Error("Answer does not belong to this question");
+      throw new AppError("Answer does not belong to this question", 400);
     }
 
-    // Calculate points
     const pointsEarned = answer.is_correct ? answer.question.points || 0 : 0;
-
-    // Get quiz ID from question
-    const quizId = answer.question.id_quiz;
-
-    // Create session automatically
-    const session = await this.sessionRepository.create({
-      id_user: userId,
-      id_answer: data.id_answer,
-      id_quiz: quizId,
-      session_type: "quiz",
-      total_points: pointsEarned,
-      start_time: new Date().toISOString(),
-      end_time: new Date().toISOString(),
-    });
-
-    // Get correct answer if user answered wrong
-    let correctAnswer: string | undefined;
-    if (!answer.is_correct) {
-      const correct = answer.question.answers.find((a) => a.is_correct);
-      correctAnswer = correct?.content;
-    }
+    const session = await this.createQuizSession(userId, data.id_answer, answer.question.id_quiz, pointsEarned);
+    const correctAnswer = this.getCorrectAnswer(answer);
 
     return {
       is_correct: answer.is_correct,
@@ -115,5 +82,31 @@ export class QuizService {
       correct_answer: correctAnswer,
       session_id: session.id_session,
     };
+  }
+
+  private async createQuizSession(
+    userId: number,
+    answerId: number,
+    quizId: number,
+    points: number
+  ) {
+    return await this.sessionRepository.create({
+      id_user: userId,
+      id_answer: answerId,
+      id_quiz: quizId,
+      session_type: "quiz",
+      total_points: points,
+      start_time: new Date().toISOString(),
+      end_time: new Date().toISOString(),
+    });
+  }
+
+  private getCorrectAnswer(answer: {
+    is_correct: boolean;
+    question: { answers: Array<{ content: string; is_correct: boolean }> };
+  }): string | undefined {
+    if (answer.is_correct) return undefined;
+    const correct = answer.question.answers.find((a) => a.is_correct);
+    return correct?.content;
   }
 }

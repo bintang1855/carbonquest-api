@@ -27,55 +27,49 @@ export class SessionRepository {
     return await prisma.sessions.findMany({
       where: { id_user: userId },
       include: {
-        answer: {
-          include: {
-            question: true,
-          },
-        },
+        answer: { include: { question: true } },
         quiz: true,
       },
-      orderBy: {
-        start_time: "desc",
-      },
+      orderBy: { start_time: "desc" },
     });
   }
 
   async getWeeklyPoints(userId: number, weeks: number = 4) {
+    const { startDate, endDate } = this.getDateRange(weeks);
+
+    const [quizSessions, missionCompletions] = await Promise.all([
+      this.findQuizSessions(userId, startDate, endDate),
+      this.findMissionCompletions(userId, startDate, endDate),
+    ]);
+
+    return { quizSessions, missionCompletions };
+  }
+
+  private getDateRange(weeks: number): { startDate: Date; endDate: Date } {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - weeks * 7);
+    return { startDate, endDate };
+  }
 
-    // Get quiz sessions
-    const quizSessions = await prisma.sessions.findMany({
+  private async findQuizSessions(userId: number, startDate: Date, endDate: Date) {
+    return await prisma.sessions.findMany({
       where: {
         id_user: userId,
         session_type: "quiz",
-        end_time: {
-          gte: startDate,
-          lte: endDate,
-        },
+        end_time: { gte: startDate, lte: endDate },
       },
-      select: {
-        total_points: true,
-        end_time: true,
-      },
+      select: { total_points: true, end_time: true },
     });
+  }
 
-    // Get mission completions
-    const missionCompletions = await prisma.user_Missions.findMany({
+  private async findMissionCompletions(userId: number, startDate: Date, endDate: Date) {
+    return await prisma.user_Missions.findMany({
       where: {
         id_user: userId,
-        completed_time: {
-          gte: startDate,
-          lte: endDate,
-        },
+        completed_time: { gte: startDate, lte: endDate },
       },
-      select: {
-        points: true,
-        completed_time: true,
-      },
+      select: { points: true, completed_time: true },
     });
-
-    return { quizSessions, missionCompletions };
   }
 }

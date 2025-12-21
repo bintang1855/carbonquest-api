@@ -6,6 +6,7 @@ import {
 } from "../types/index.js";
 import { ResponseUtil } from "../utils/response.js";
 import { UserMissionService } from "../services/user-mission.service.js";
+import { parseId } from "../utils/helpers.js";
 
 export class UserMissionController {
   private service: UserMissionService;
@@ -14,9 +15,6 @@ export class UserMissionController {
     this.service = new UserMissionService();
   }
 
-  /**
-   * Start a mission
-   */
   public startMission = async (
     req: AuthenticatedRequest,
     res: Response,
@@ -31,16 +29,13 @@ export class UserMissionController {
     }
   };
 
-  /**
-   * Update mission progress
-   */
   public updateMission = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = Number(req.params.id);
+      const id = parseId(req.params.id);
       const data: UpdateUserMissionDTO = req.body;
       const updated = await this.service.updateMission(id, data);
       ResponseUtil.success(res, "Mission updated successfully", updated);
@@ -49,9 +44,6 @@ export class UserMissionController {
     }
   };
 
-  /**
-   * Get user's missions
-   */
   public getUserMissions = async (
     req: AuthenticatedRequest,
     res: Response,
@@ -59,11 +51,7 @@ export class UserMissionController {
   ): Promise<void> => {
     try {
       const missions = await this.service.getUserMissions(req.user.sub);
-      ResponseUtil.success(
-        res,
-        "User missions retrieved successfully",
-        missions
-      );
+      ResponseUtil.success(res, "User missions retrieved successfully", missions);
     } catch (err) {
       next(err);
     }

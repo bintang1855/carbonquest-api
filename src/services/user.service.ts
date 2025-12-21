@@ -15,88 +15,60 @@ export class UserService {
   }
 
   async getUserById(id: number): Promise<Omit<UserDTO, "password">> {
-    const user = await this.repository.findById(id);
-
-    if (!user) {
-      throw new AppError("User not found", 404);
-    }
-
-    const { password, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    const user = await this.findUserOrThrow(id);
+    return this.excludePassword(user);
   }
 
   async getLeaderboard(): Promise<any[]> {
     return await this.repository.getLeaderboard();
   }
 
-  async updatePassword(
-    id: number,
-    oldPassword: string,
-    newPassword: string
-  ): Promise<void> {
-    const user = await this.repository.findById(id);
-
-    if (!user) {
-      throw new AppError("User not found", 404);
-    }
+  async updatePassword(id: number, oldPassword: string, newPassword: string): Promise<void> {
+    const user = await this.findUserOrThrow(id);
 
     if (!user.password) {
       throw new AppError("Invalid user data", 500);
     }
 
-    // Verify old password
-    const isValidPassword = await bcrypt.compare(oldPassword, user.password);
-    if (!isValidPassword) {
+    const isValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isValid) {
       throw new AppError("Invalid old password", 400);
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password
-    await this.repository.updatePassword(id, hashedPassword);
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.repository.updatePassword(id, hashed);
   }
 
   async updateUser(
     id: number,
     data: Partial<Omit<UserDTO, "id_user" | "password">>
   ): Promise<Omit<UserDTO, "password">> {
-    const user = await this.repository.findById(id);
-
-    if (!user) {
-      throw new AppError("User not found", 404);
-    }
-
-    const updatedUser = await this.repository.update(
-      id,
-      data as Partial<CreateUserDTO>
-    );
-    const { password, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword;
+    await this.findUserOrThrow(id);
+    const updatedUser = await this.repository.update(id, data as Partial<CreateUserDTO>);
+    return this.excludePassword(updatedUser);
   }
 
   async deleteUser(id: number): Promise<void> {
-    const user = await this.repository.findById(id);
-
-    if (!user) {
-      throw new AppError("User not found", 404);
-    }
-
+    await this.findUserOrThrow(id);
     await this.repository.delete(id);
   }
 
-  async updateProfileImage(
-    id: number,
-    profile_image: string
-  ): Promise<Omit<UserDTO, "password">> {
-    const user = await this.repository.findById(id);
+  async updateProfileImage(id: number, profileImage: string): Promise<Omit<UserDTO, "password">> {
+    await this.findUserOrThrow(id);
+    const updatedUser = await this.repository.update(id, { profile_image: profileImage });
+    return this.excludePassword(updatedUser);
+  }
 
+  private async findUserOrThrow(id: number): Promise<UserDTO> {
+    const user = await this.repository.findById(id);
     if (!user) {
       throw new AppError("User not found", 404);
     }
+    return user;
+  }
 
-    const updatedUser = await this.repository.update(id, { profile_image });
-    const { password, ...userWithoutPassword } = updatedUser;
+  private excludePassword(user: UserDTO): Omit<UserDTO, "password"> {
+    const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 }

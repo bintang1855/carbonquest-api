@@ -2,6 +2,8 @@ import { NextFunction, Response } from "express";
 import { AuthenticatedRequest } from "../types/index.js";
 import { ResponseUtil } from "../utils/response.js";
 import { UserService } from "../services/user.service.js";
+import { parseId, buildFilePath } from "../utils/helpers.js";
+import { AppError } from "../middleware/error.middleware.js";
 
 export class UserController {
   private service: UserService;
@@ -10,9 +12,6 @@ export class UserController {
     this.service = new UserService();
   }
 
-  /**
-   * Get all users
-   */
   public getAllUsers = async (
     _req: AuthenticatedRequest,
     res: Response,
@@ -26,9 +25,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Get leaderboard
-   */
   public getLeaderboard = async (
     _req: AuthenticatedRequest,
     res: Response,
@@ -36,26 +32,19 @@ export class UserController {
   ): Promise<void> => {
     try {
       const leaderboard = await this.service.getLeaderboard();
-      ResponseUtil.success(
-        res,
-        "Leaderboard retrieved successfully",
-        leaderboard
-      );
+      ResponseUtil.success(res, "Leaderboard retrieved successfully", leaderboard);
     } catch (err) {
       next(err);
     }
   };
 
-  /**
-   * Get user by ID
-   */
   public getUserById = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = Number(req.params.id);
+      const id = parseId(req.params.id);
       const user = await this.service.getUserById(id);
       ResponseUtil.success(res, "User retrieved successfully", user);
     } catch (err) {
@@ -63,9 +52,6 @@ export class UserController {
     }
   };
 
-  /**
-   * Update user password
-   */
   public updatePassword = async (
     req: AuthenticatedRequest,
     res: Response,
@@ -80,44 +66,32 @@ export class UserController {
     }
   };
 
-  /**
-   * Update user profile
-   */
   public updateUser = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = Number(req.params.id);
+      const id = parseId(req.params.id);
+      this.validateOwnership(req.user.sub, id, "update your own profile");
 
-      // Users can only update their own profile
-      if (req.user.sub !== id) {
-        throw new Error("You can only update your own profile");
-      }
-
-      const data = req.body;
-      const user = await this.service.updateUser(id, data);
+      const user = await this.service.updateUser(id, req.body);
       ResponseUtil.success(res, "User updated successfully", user);
     } catch (err) {
       next(err);
     }
   };
 
-  /**
-   * Delete a user
-   */
   public deleteUser = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = Number(req.params.id);
+      const id = parseId(req.params.id);
 
-      // Users can only delete their own account, org can delete any user
-      if (req.user.role === "user" && req.user.sub !== id) {
-        throw new Error("You can only delete your own account");
+      if (req.user.role === "user") {
+        this.validateOwnership(req.user.sub, id, "delete your own account");
       }
 
       await this.service.deleteUser(id);
@@ -127,31 +101,30 @@ export class UserController {
     }
   };
 
-  /**
-   * Upload user profile image
-   */
   public uploadProfileImage = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = Number(req.params.id);
-
-      // Users can only update their own profile image
-      if (req.user.sub !== id) {
-        throw new Error("You can only update your own profile image");
-      }
+      const id = parseId(req.params.id);
+      this.validateOwnership(req.user.sub, id, "update your own profile image");
 
       if (!req.file) {
-        throw new Error("No file uploaded");
+        throw new AppError("No file uploaded", 400);
       }
 
-      const profile_image = `/files/${req.file.filename}`;
-      const user = await this.service.updateProfileImage(id, profile_image);
+      const profileImage = buildFilePath(req.file.filename);
+      const user = await this.service.updateProfileImage(id, profileImage);
       ResponseUtil.success(res, "Profile image uploaded successfully", user);
     } catch (err) {
       next(err);
     }
   };
+
+  private validateOwnership(userId: number, targetId: number, action: string): void {
+    if (userId !== targetId) {
+      throw new AppError(`You can only ${action}`, 403);
+    }
+  }
 }

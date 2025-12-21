@@ -3,6 +3,8 @@ import {
   CreateQuizDTO,
   QuizDTO,
   UpdateQuizWithQuestionsDTO,
+  UpdateQuizQuestionDTO,
+  UpdateQuizAnswerDTO,
 } from "../types/index.js";
 
 export class QuizRepository {
@@ -11,9 +13,7 @@ export class QuizRepository {
       include: {
         creator: true,
         questions: {
-          include: {
-            answers: true,
-          },
+          include: { answers: true },
         },
       },
     });
@@ -25,12 +25,8 @@ export class QuizRepository {
       include: {
         creator: true,
         questions: {
-          include: {
-            answers: true,
-          },
-          orderBy: {
-            order: "asc",
-          },
+          include: { answers: true },
+          orderBy: { order: "asc" },
         },
       },
     });
@@ -49,7 +45,6 @@ export class QuizRepository {
   }
 
   async createWithQuestions(data: CreateQuizDTO & { id_creator: number }) {
-    // Create quiz with nested questions and answers
     return await prisma.quizzes.create({
       data: {
         title: data.title,
@@ -73,12 +68,8 @@ export class QuizRepository {
       },
       include: {
         questions: {
-          include: {
-            answers: true,
-          },
-          orderBy: {
-            order: "asc",
-          },
+          include: { answers: true },
+          orderBy: { order: "asc" },
         },
       },
     });
@@ -96,7 +87,39 @@ export class QuizRepository {
   }
 
   async updateWithQuestions(id: number, data: UpdateQuizWithQuestionsDTO) {
-    // First, update quiz metadata
+    await this.updateQuizMetadata(id, data);
+
+    if (data.questions) {
+      const existingQuestionIds = await this.getExistingQuestionIds(id);
+      const updatedQuestionIds = await this.processQuestions(id, data.questions);
+      await this.deleteRemovedQuestions(existingQuestionIds, updatedQuestionIds);
+    }
+
+    return await this.findById(id);
+  }
+
+  async delete(id: number): Promise<void> {
+    await prisma.quizzes.delete({ where: { id_quiz: id } });
+  }
+
+  async getQuestionCount(id_quiz: number): Promise<number> {
+    return await prisma.questions.count({ where: { id_quiz } });
+  }
+
+  async findAnswerById(id_answer: number) {
+    return await prisma.answers.findUnique({
+      where: { id_answer },
+      include: {
+        question: {
+          include: { answers: true },
+        },
+      },
+    });
+  }
+
+  // ==================== Private Helper Methods ====================
+
+  private async updateQuizMetadata(id: number, data: UpdateQuizWithQuestionsDTO) {
     await prisma.quizzes.update({
       where: { id_quiz: id },
       data: {
@@ -105,159 +128,160 @@ export class QuizRepository {
         total_points: data.total_points,
       },
     });
+  }
 
-    // Get all existing question IDs for this quiz
-    const existingQuestions = await prisma.questions.findMany({
-      where: { id_quiz: id },
+  private async getExistingQuestionIds(quizId: number): Promise<number[]> {
+    const questions = await prisma.questions.findMany({
+      where: { id_quiz: quizId },
       select: { id_question: true },
     });
-    const existingQuestionIds = existingQuestions.map((q) => q.id_question);
+    return questions.map((q) => q.id_question);
+  }
 
-    // Track which questions are being updated/kept
-    const updatedQuestionIds: number[] = [];
+  private async processQuestions(
+    quizId: number,
+    questions: UpdateQuizQuestionDTO[]
+  ): Promise<number[]> {
+    const updatedIds: number[] = [];
 
-    // Process each question
-    if (data.questions) {
-      for (const [index, q] of data.questions.entries()) {
-        if (q.id_question) {
-          // Check if question exists before updating
-          const existingQuestion = await prisma.questions.findUnique({
-            where: { id_question: q.id_question },
-          });
-
-          if (!existingQuestion) {
-            throw new Error(`Question with id ${q.id_question} not found`);
-          }
-
-          // Update existing question
-          updatedQuestionIds.push(q.id_question);
-
-          await prisma.questions.update({
-            where: { id_question: q.id_question },
-            data: {
-              content: q.content,
-              points: q.points,
-              order: q.order || index + 1,
-            },
-          });
-
-          // Get existing answer IDs for this question
-          const existingAnswers = await prisma.answers.findMany({
-            where: { id_question: q.id_question },
-            select: { id_answer: true },
-          });
-          const existingAnswerIds = existingAnswers.map((a) => a.id_answer);
-          const updatedAnswerIds: number[] = [];
-
-          // Process answers
-          for (const a of q.answers) {
-            if (a.id_answer) {
-              // Check if answer exists before updating
-              const existingAnswer = await prisma.answers.findUnique({
-                where: { id_answer: a.id_answer },
-              });
-
-              if (existingAnswer) {
-                // Update existing answer only if it exists
-                updatedAnswerIds.push(a.id_answer);
-                await prisma.answers.update({
-                  where: { id_answer: a.id_answer },
-                  data: {
-                    content: a.content,
-                    is_correct: a.is_correct,
-                  },
-                });
-              } else {
-                // Create new answer if id_answer doesn't exist (treat as new)
-                await prisma.answers.create({
-                  data: {
-                    id_question: q.id_question,
-                    content: a.content,
-                    is_correct: a.is_correct,
-                  },
-                });
-              }
-            } else {
-              // Create new answer
-              await prisma.answers.create({
-                data: {
-                  id_question: q.id_question,
-                  content: a.content,
-                  is_correct: a.is_correct,
-                },
-              });
-            }
-          }
-
-          // Delete answers that are no longer present
-          const answersToDelete = existingAnswerIds.filter(
-            (id) => !updatedAnswerIds.includes(id)
-          );
-          if (answersToDelete.length > 0) {
-            await prisma.answers.deleteMany({
-              where: {
-                id_answer: { in: answersToDelete },
-              },
-            });
-          }
-        } else {
-          // Create new question with answers
-          await prisma.questions.create({
-            data: {
-              id_quiz: id,
-              content: q.content,
-              points: q.points || 10,
-              order: q.order || index + 1,
-              answers: {
-                create: q.answers.map((a) => ({
-                  content: a.content,
-                  is_correct: a.is_correct,
-                })),
-              },
-            },
-          });
-        }
+    for (const [index, question] of questions.entries()) {
+      if (question.id_question) {
+        await this.updateExistingQuestion(question, index);
+        updatedIds.push(question.id_question);
+      } else {
+        await this.createNewQuestion(quizId, question, index);
       }
     }
 
-    // Delete questions that are no longer present
-    const questionsToDelete = existingQuestionIds.filter(
-      (id) => !updatedQuestionIds.includes(id)
-    );
-    if (questionsToDelete.length > 0) {
-      await prisma.questions.deleteMany({
-        where: {
-          id_question: { in: questionsToDelete },
-        },
-      });
+    return updatedIds;
+  }
+
+  private async updateExistingQuestion(
+    question: UpdateQuizQuestionDTO,
+    index: number
+  ): Promise<void> {
+    const exists = await prisma.questions.findUnique({
+      where: { id_question: question.id_question },
+    });
+
+    if (!exists) {
+      throw new Error(`Question with id ${question.id_question} not found`);
     }
 
-    // Return updated quiz with all relations
-    return await this.findById(id);
-  }
-
-  async delete(id: number): Promise<void> {
-    await prisma.quizzes.delete({
-      where: { id_quiz: id },
+    await prisma.questions.update({
+      where: { id_question: question.id_question },
+      data: {
+        content: question.content,
+        points: question.points,
+        order: question.order || index + 1,
+      },
     });
+
+    await this.processAnswers(question.id_question!, question.answers);
   }
 
-  async getQuestionCount(id_quiz: number): Promise<number> {
-    return await prisma.questions.count({
-      where: { id_quiz },
-    });
-  }
-
-  async findAnswerById(id_answer: number) {
-    return await prisma.answers.findUnique({
-      where: { id_answer },
-      include: {
-        question: {
-          include: {
-            answers: true,
-          },
+  private async createNewQuestion(
+    quizId: number,
+    question: UpdateQuizQuestionDTO,
+    index: number
+  ): Promise<void> {
+    await prisma.questions.create({
+      data: {
+        id_quiz: quizId,
+        content: question.content,
+        points: question.points || 10,
+        order: question.order || index + 1,
+        answers: {
+          create: question.answers.map((a) => ({
+            content: a.content,
+            is_correct: a.is_correct,
+          })),
         },
       },
     });
+  }
+
+  private async processAnswers(
+    questionId: number,
+    answers: UpdateQuizAnswerDTO[]
+  ): Promise<void> {
+    const existingAnswerIds = await this.getExistingAnswerIds(questionId);
+    const updatedAnswerIds: number[] = [];
+
+    for (const answer of answers) {
+      if (answer.id_answer) {
+        const updated = await this.updateOrCreateAnswer(questionId, answer);
+        if (updated) updatedAnswerIds.push(answer.id_answer);
+      } else {
+        await this.createAnswer(questionId, answer);
+      }
+    }
+
+    await this.deleteRemovedAnswers(existingAnswerIds, updatedAnswerIds);
+  }
+
+  private async getExistingAnswerIds(questionId: number): Promise<number[]> {
+    const answers = await prisma.answers.findMany({
+      where: { id_question: questionId },
+      select: { id_answer: true },
+    });
+    return answers.map((a) => a.id_answer);
+  }
+
+  private async updateOrCreateAnswer(
+    questionId: number,
+    answer: UpdateQuizAnswerDTO
+  ): Promise<boolean> {
+    const exists = await prisma.answers.findUnique({
+      where: { id_answer: answer.id_answer },
+    });
+
+    if (exists) {
+      await prisma.answers.update({
+        where: { id_answer: answer.id_answer },
+        data: { content: answer.content, is_correct: answer.is_correct },
+      });
+      return true;
+    }
+
+    await this.createAnswer(questionId, answer);
+    return false;
+  }
+
+  private async createAnswer(
+    questionId: number,
+    answer: UpdateQuizAnswerDTO
+  ): Promise<void> {
+    await prisma.answers.create({
+      data: {
+        id_question: questionId,
+        content: answer.content,
+        is_correct: answer.is_correct,
+      },
+    });
+  }
+
+  private async deleteRemovedQuestions(
+    existing: number[],
+    updated: number[]
+  ): Promise<void> {
+    const toDelete = existing.filter((id) => !updated.includes(id));
+    if (toDelete.length > 0) {
+      await prisma.questions.deleteMany({
+        where: { id_question: { in: toDelete } },
+      });
+    }
+  }
+
+  private async deleteRemovedAnswers(
+    existing: number[],
+    updated: number[]
+  ): Promise<void> {
+    const toDelete = existing.filter((id) => !updated.includes(id));
+    if (toDelete.length > 0) {
+      await prisma.answers.deleteMany({
+        where: { id_answer: { in: toDelete } },
+      });
+    }
   }
 }
