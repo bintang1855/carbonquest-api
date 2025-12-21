@@ -127,6 +127,52 @@ export interface CreateQuizDTO {
   title: string;
   category?: string;
   total_points?: number;
+  questions?: CreateQuizQuestionDTO[];
+}
+
+export interface CreateQuizQuestionDTO {
+  content: string;
+  points?: number;
+  order?: number;
+  answers: CreateQuizAnswerDTO[];
+}
+
+export interface UpdateQuizWithQuestionsDTO {
+  title?: string;
+  category?: string;
+  total_points?: number;
+  questions?: UpdateQuizQuestionDTO[];
+}
+
+export interface UpdateQuizQuestionDTO {
+  id_question?: number; // If provided, update existing; if not, create new
+  content: string;
+  points?: number;
+  order?: number;
+  answers: UpdateQuizAnswerDTO[];
+}
+
+export interface UpdateQuizAnswerDTO {
+  id_answer?: number; // If provided, update existing; if not, create new
+  content: string;
+  is_correct: boolean;
+}
+
+export interface CreateQuizAnswerDTO {
+  content: string;
+  is_correct: boolean;
+}
+
+export interface SubmitQuizAnswerDTO {
+  id_question: number;
+  id_answer: number;
+}
+
+export interface QuizSubmissionResultDTO {
+  is_correct: boolean;
+  points_earned: number;
+  correct_answer?: string;
+  session_id: number;
 }
 
 export interface QuestionDTO {
@@ -162,12 +208,16 @@ export interface SessionDTO {
   start_time?: Date | null;
   end_time?: Date | null;
   total_points?: number | null;
+  session_type?: string | null;
   id_user: number;
   id_answer: number;
+  id_quiz?: number | null;
 }
 
 export interface CreateSessionDTO {
   id_answer: number;
+  id_quiz?: number;
+  session_type?: string;
   total_points?: number;
   start_time?: string;
   end_time?: string;
@@ -176,6 +226,15 @@ export interface CreateSessionDTO {
 export interface UpdateSessionDTO {
   total_points?: number;
   end_time?: string;
+}
+
+export interface WeeklyPointsDTO {
+  week: string; // Date in YYYY-MM-DD format (represents a single day)
+  mission_points: number;
+  quiz_points: number;
+  total_points: number;
+  missions_completed: number;
+  quizzes_completed: number;
 }
 
 export interface ArticleDTO {

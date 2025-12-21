@@ -4,13 +4,16 @@ services:
     container_name: carbonquest-api
     env_file:
       - .env
+    environment:
+      - TZ=Asia/Jakarta
     depends_on:
       - db
     ports:
-      - "4000:4000" # HOST:CONTAINER, sekarang pakai 4000
+      - "4000:4000" # HOST:CONTAINER, API server
+      - "5555:5555" # Prisma Studio
     restart: unless-stopped
     volumes:
-      - .:/app
+      - .:/app  
       - /app/node_modules
       - uploads_data:/app/uploads # Persistent storage untuk uploads
 

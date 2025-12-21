@@ -22,16 +22,33 @@ const storage = multer.diskStorage({
 
 // Filter file types (hanya gambar)
 const fileFilter = (_req: any, file: Express.Multer.File, cb: any) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+  ];
+  const allowedExtensions = /jpeg|jpg|png|gif|webp/;
 
-  if (mimetype && extname) {
+  // Check MIME type
+  const mimetypeValid = allowedMimeTypes.includes(file.mimetype.toLowerCase());
+
+  // Check extension (jika ada)
+  const extname = file.originalname
+    ? allowedExtensions.test(path.extname(file.originalname).toLowerCase())
+    : false;
+
+  // Accept jika MIME type valid ATAU extension valid
+  // Flutter sering send tanpa proper extension, jadi MIME type lebih reliable
+  if (mimetypeValid || extname) {
     return cb(null, true);
   } else {
-    cb(new Error("Only image files are allowed!"));
+    cb(
+      new Error(
+        `Only image files are allowed! Received mimetype: ${file.mimetype}`
+      )
+    );
   }
 };
 
@@ -40,6 +57,6 @@ export const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // Max 5MB
+    fileSize: 30 * 1024 * 1024, // Max 30MB
   },
 });

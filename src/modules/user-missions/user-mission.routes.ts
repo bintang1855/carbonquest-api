@@ -137,7 +137,7 @@ router.put(
  *         description: Forbidden - user role required
  */
 router.get(
-  "/me/missions",
+  "/missions",
   authMiddleware("user") as any,
   (async (
     req: AuthenticatedRequest,
