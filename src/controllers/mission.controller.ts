@@ -2,6 +2,11 @@ import { NextFunction, Response } from "express";
 import { AuthenticatedRequest, CreateMissionDTO } from "../types/index.js";
 import { ResponseUtil } from "../utils/response.js";
 import { MissionService } from "../services/mission.service.js";
+import {
+  removeUndefinedFields,
+  parseId,
+  buildFilePath,
+} from "../utils/helpers.js";
 
 export class MissionController {
   private service: MissionService;
@@ -10,9 +15,6 @@ export class MissionController {
     this.service = new MissionService();
   }
 
-  /**
-   * Create a new mission
-   */
   public createMission = async (
     req: AuthenticatedRequest,
     res: Response,
@@ -28,12 +30,8 @@ export class MissionController {
         author_role: req.body.authorRole,
         points: req.body.points ? parseInt(req.body.points) : undefined,
         highlights: req.body.highlights,
+        cover_image: req.file ? buildFilePath(req.file.filename) : undefined,
       };
-
-      // Add cover image URL if file was uploaded
-      if (req.file) {
-        data.cover_image = `/files/${req.file.filename}`;
-      }
 
       const mission = await this.service.createMission(data, req.user.sub);
       ResponseUtil.created(res, "Mission created successfully", mission);
@@ -42,9 +40,6 @@ export class MissionController {
     }
   };
 
-  /**
-   * Get all missions
-   */
   public getAllMissions = async (
     _req: AuthenticatedRequest,
     res: Response,
@@ -58,16 +53,13 @@ export class MissionController {
     }
   };
 
-  /**
-   * Get mission by ID
-   */
   public getMissionById = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
       const mission = await this.service.getMissionById(id);
       ResponseUtil.success(res, "Mission retrieved successfully", mission);
     } catch (err) {
@@ -75,17 +67,14 @@ export class MissionController {
     }
   };
 
-  /**
-   * Update a mission
-   */
   public updateMission = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const data: Partial<CreateMissionDTO> = {
+      const id = parseId(req.params.id);
+      const data = removeUndefinedFields<Partial<CreateMissionDTO>>({
         title: req.body.title,
         tags: req.body.tags,
         desc: req.body.desc || req.body.description,
@@ -94,19 +83,8 @@ export class MissionController {
         author_role: req.body.authorRole,
         points: req.body.points ? parseInt(req.body.points) : undefined,
         highlights: req.body.highlights,
-      };
-
-      // Add cover image URL if file was uploaded
-      if (req.file) {
-        data.cover_image = `/files/${req.file.filename}`;
-      }
-
-      // Remove undefined fields
-      Object.keys(data).forEach(
-        (key) =>
-          data[key as keyof typeof data] === undefined &&
-          delete data[key as keyof typeof data]
-      );
+        cover_image: req.file ? buildFilePath(req.file.filename) : undefined,
+      });
 
       const mission = await this.service.updateMission(id, data);
       ResponseUtil.success(res, "Mission updated successfully", mission);
@@ -115,16 +93,13 @@ export class MissionController {
     }
   };
 
-  /**
-   * Delete a mission
-   */
   public deleteMission = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
       await this.service.deleteMission(id);
       ResponseUtil.success(res, "Mission deleted successfully", null);
     } catch (err) {

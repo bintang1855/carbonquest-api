@@ -15,11 +15,7 @@ export class OrganizationService {
     return orgs.map(({ password, ...org }) => org);
   }
 
-  async updatePassword(
-    id: number,
-    oldPassword: string,
-    newPassword: string
-  ): Promise<void> {
+  async updatePassword(id: number, oldPassword: string, newPassword: string): Promise<void> {
     const org = await this.repository.findById(id);
 
     if (!org) {
@@ -30,16 +26,12 @@ export class OrganizationService {
       throw new AppError("Invalid organization data", 500);
     }
 
-    // Verify old password
-    const isValidPassword = await bcrypt.compare(oldPassword, org.password);
-    if (!isValidPassword) {
+    const isValid = await bcrypt.compare(oldPassword, org.password);
+    if (!isValid) {
       throw new AppError("Invalid old password", 400);
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update password
-    await this.repository.updatePassword(id, hashedPassword);
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await this.repository.updatePassword(id, hashed);
   }
 }

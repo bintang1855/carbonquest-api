@@ -6,6 +6,7 @@ import {
 } from "../types/index.js";
 import { ResponseUtil } from "../utils/response.js";
 import { QuizService } from "../services/quiz.service.js";
+import { parseId } from "../utils/helpers.js";
 
 export class QuizController {
   private service: QuizService;
@@ -14,9 +15,6 @@ export class QuizController {
     this.service = new QuizService();
   }
 
-  /**
-   * Create a new quiz
-   */
   public createQuiz = async (
     req: AuthenticatedRequest,
     res: Response,
@@ -31,9 +29,6 @@ export class QuizController {
     }
   };
 
-  /**
-   * Get all quizzes
-   */
   public getAllQuizzes = async (
     _req: AuthenticatedRequest,
     res: Response,
@@ -47,16 +42,13 @@ export class QuizController {
     }
   };
 
-  /**
-   * Get quiz by ID
-   */
   public getQuizById = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
       const quiz = await this.service.getQuizById(id);
       ResponseUtil.success(res, "Quiz retrieved successfully", quiz);
     } catch (err) {
@@ -64,34 +56,27 @@ export class QuizController {
     }
   };
 
-  /**
-   * Update a quiz
-   */
   public updateQuiz = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
-      const data = req.body;
-      const quiz = await this.service.updateQuiz(id, data);
+      const id = parseId(req.params.id);
+      const quiz = await this.service.updateQuiz(id, req.body);
       ResponseUtil.success(res, "Quiz updated successfully", quiz);
     } catch (err) {
       next(err);
     }
   };
 
-  /**
-   * Delete a quiz
-   */
   public deleteQuiz = async (
     req: AuthenticatedRequest,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const id = parseInt(req.params.id);
+      const id = parseId(req.params.id);
       await this.service.deleteQuiz(id);
       ResponseUtil.success(res, "Quiz deleted successfully", null);
     } catch (err) {
@@ -99,9 +84,6 @@ export class QuizController {
     }
   };
 
-  /**
-   * Submit quiz answer
-   */
   public submitAnswer = async (
     req: AuthenticatedRequest,
     res: Response,

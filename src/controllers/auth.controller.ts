@@ -14,9 +14,6 @@ export class AuthController {
     this.service = new AuthService();
   }
 
-  /**
-   * Register a new user
-   */
   public registerUser = async (
     req: Request,
     res: Response,
@@ -31,9 +28,6 @@ export class AuthController {
     }
   };
 
-  /**
-   * Login as a user
-   */
   public loginUser = async (
     req: Request,
     res: Response,
@@ -48,9 +42,6 @@ export class AuthController {
     }
   };
 
-  /**
-   * Register a new organization
-   */
   public registerOrganization = async (
     req: Request,
     res: Response,
@@ -65,9 +56,6 @@ export class AuthController {
     }
   };
 
-  /**
-   * Login as an organization
-   */
   public loginOrganization = async (
     req: Request,
     res: Response,

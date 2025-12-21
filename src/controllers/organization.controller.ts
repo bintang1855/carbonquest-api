@@ -10,9 +10,6 @@ export class OrganizationController {
     this.service = new OrganizationService();
   }
 
-  /**
-   * Get all organizations
-   */
   public getAllOrganizations = async (
     _req: AuthenticatedRequest,
     res: Response,
@@ -26,9 +23,6 @@ export class OrganizationController {
     }
   };
 
-  /**
-   * Update organization password
-   */
   public updatePassword = async (
     req: AuthenticatedRequest,
     res: Response,

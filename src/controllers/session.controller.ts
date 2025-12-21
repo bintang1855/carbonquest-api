@@ -10,9 +10,6 @@ export class SessionController {
     this.service = new SessionService();
   }
 
-  /**
-   * Get user sessions
-   */
   public getUserSessions = async (
     req: AuthenticatedRequest,
     res: Response,
@@ -26,9 +23,6 @@ export class SessionController {
     }
   };
 
-  /**
-   * Get daily points history
-   */
   public getDailyPoints = async (
     req: AuthenticatedRequest,
     res: Response,
@@ -36,15 +30,8 @@ export class SessionController {
   ): Promise<void> => {
     try {
       const days = req.query.days ? Number(req.query.days) : 7;
-      const dailyPoints = await this.service.getWeeklyPointsHistory(
-        req.user.sub,
-        days
-      );
-      ResponseUtil.success(
-        res,
-        "Daily points history retrieved successfully",
-        dailyPoints
-      );
+      const dailyPoints = await this.service.getWeeklyPointsHistory(req.user.sub, days);
+      ResponseUtil.success(res, "Daily points history retrieved successfully", dailyPoints);
     } catch (err) {
       next(err);
     }

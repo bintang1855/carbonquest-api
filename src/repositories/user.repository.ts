@@ -1,17 +1,22 @@
 import prisma from "../prisma/client.js";
 import { CreateUserDTO, UserDTO } from "../types/index.js";
 
+interface LeaderboardEntry {
+  id_user: number;
+  name: string;
+  email: string;
+  total_points: number;
+  session_points: number;
+  mission_points: number;
+}
+
 export class UserRepository {
   async findById(id: number): Promise<UserDTO | null> {
-    return await prisma.users.findUnique({
-      where: { id_user: id },
-    });
+    return await prisma.users.findUnique({ where: { id_user: id } });
   }
 
   async findByEmail(email: string): Promise<UserDTO | null> {
-    return await prisma.users.findFirst({
-      where: { email },
-    });
+    return await prisma.users.findFirst({ where: { email } });
   }
 
   async findAll(): Promise<UserDTO[]> {
@@ -19,16 +24,11 @@ export class UserRepository {
   }
 
   async create(data: CreateUserDTO): Promise<UserDTO> {
-    return await prisma.users.create({
-      data,
-    });
+    return await prisma.users.create({ data });
   }
 
   async update(id: number, data: Partial<CreateUserDTO>): Promise<UserDTO> {
-    return await prisma.users.update({
-      where: { id_user: id },
-      data,
-    });
+    return await prisma.users.update({ where: { id_user: id }, data });
   }
 
   async updatePassword(id: number, hashedPassword: string): Promise<void> {
@@ -39,51 +39,32 @@ export class UserRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await prisma.users.delete({
-      where: { id_user: id },
-    });
+    await prisma.users.delete({ where: { id_user: id } });
   }
 
-  async getLeaderboard(): Promise<any[]> {
-    // Get all users with their points from sessions and user_missions
+  async getLeaderboard(): Promise<LeaderboardEntry[]> {
     const users = await prisma.users.findMany({
       include: {
-        sessions: {
-          select: {
-            total_points: true,
-          },
-        },
-        user_mission: {
-          select: {
-            points: true,
-          },
-        },
+        sessions: { select: { total_points: true } },
+        user_mission: { select: { points: true } },
       },
     });
 
-    // Calculate total points for each user
-    const leaderboard = users.map((user) => {
-      const sessionPoints = user.sessions.reduce(
-        (sum, session) => sum + (session.total_points || 0),
-        0
-      );
-      const missionPoints = user.user_mission.reduce(
-        (sum, mission) => sum + (mission.points || 0),
-        0
-      );
-      const totalPoints = sessionPoints + missionPoints;
-
-      return {
+    return users
+      .map((user) => ({
         id_user: user.id_user,
         name: user.name,
         email: user.email,
-        total_points: totalPoints,
-        session_points: sessionPoints,
-        mission_points: missionPoints,
-      };
-    });
+        session_points: this.sumPoints(user.sessions, "total_points"),
+        mission_points: this.sumPoints(user.user_mission, "points"),
+        total_points:
+          this.sumPoints(user.sessions, "total_points") +
+          this.sumPoints(user.user_mission, "points"),
+      }))
+      .sort((a, b) => b.total_points - a.total_points);
+  }
 
-    // Sort by total points descending
-    return leaderboard.sort((a, b) => b.total_points - a.total_points);
+  private sumPoints<T extends Record<string, any>>(items: T[], key: keyof T): number {
+    return items.reduce((sum, item) => sum + (item[key] || 0), 0);
   }
 }

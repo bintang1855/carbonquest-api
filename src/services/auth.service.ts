@@ -20,112 +20,101 @@ export class AuthService {
     this.organizationRepository = new OrganizationRepository();
   }
 
-  async registerUser(
-    data: CreateUserDTO
-  ): Promise<{ user: Omit<UserDTO, "password">; token: string }> {
-    const { name, last_name, birth_date, email, phone, password } = data;
+  async registerUser(data: CreateUserDTO): Promise<{ user: Omit<UserDTO, "password">; token: string }> {
+    this.validateRegistration(data.email, data.password, data.name);
 
-    if (!email || !password || !name) {
-      throw new AppError("Name, email, and password are required", 400);
-    }
-
-    const existingUser = await this.userRepository.findByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(data.email);
     if (existingUser) {
       throw new AppError("Email already exists", 400);
     }
 
-    const hashed = await bcrypt.hash(password, 10);
     const user = await this.userRepository.create({
-      name,
-      last_name,
-      birth_date: birth_date ? new Date(birth_date) : undefined,
-      email,
-      phone,
-      password: hashed,
-      profile_image: "", // Default empty string for profile image
+      ...data,
+      birth_date: data.birth_date ? new Date(data.birth_date) : undefined,
+      password: await this.hashPassword(data.password),
+      profile_image: "",
     });
 
-    const token = generateToken({ sub: user.id_user, role: "user" });
-
-    const { password: _, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, token };
+    return {
+      user: this.excludePassword(user),
+      token: generateToken({ sub: user.id_user, role: "user" }),
+    };
   }
 
-  async loginUser(
-    data: LoginDTO
-  ): Promise<{ user: Omit<UserDTO, "password">; token: string }> {
-    const { email, password } = data;
+  async loginUser(data: LoginDTO): Promise<{ user: Omit<UserDTO, "password">; token: string }> {
+    this.validateLogin(data.email, data.password);
 
-    if (!email || !password) {
-      throw new AppError("Email and password are required", 400);
-    }
-
-    const user = await this.userRepository.findByEmail(email);
-    if (!user) {
+    const user = await this.userRepository.findByEmail(data.email);
+    if (!user || !(await this.verifyPassword(data.password, user.password!))) {
       throw new AppError("Invalid email or password", 401);
     }
 
-    const match = await bcrypt.compare(password, user.password!);
-    if (!match) {
-      throw new AppError("Invalid email or password", 401);
-    }
-
-    const token = generateToken({ sub: user.id_user, role: "user" });
-
-    const { password: _, ...userWithoutPassword } = user;
-    return { user: userWithoutPassword, token };
+    return {
+      user: this.excludePassword(user),
+      token: generateToken({ sub: user.id_user, role: "user" }),
+    };
   }
 
-  async registerOrganization(
-    data: CreateOrganizationDTO
-  ): Promise<{ org: Omit<OrganizationDTO, "password">; token: string }> {
-    const { name, email, password, desc } = data;
+  async registerOrganization(data: CreateOrganizationDTO): Promise<{ org: Omit<OrganizationDTO, "password">; token: string }> {
+    this.validateRegistration(data.email, data.password, data.name);
 
-    if (!email || !password || !name) {
-      throw new AppError("Name, email, and password are required", 400);
-    }
-
-    const existingOrg = await this.organizationRepository.findByEmail(email);
+    const existingOrg = await this.organizationRepository.findByEmail(data.email);
     if (existingOrg) {
       throw new AppError("Email already exists", 400);
     }
 
-    const hashed = await bcrypt.hash(password, 10);
     const org = await this.organizationRepository.create({
-      name,
-      email,
-      password: hashed,
-      desc,
+      ...data,
+      password: await this.hashPassword(data.password),
     });
 
-    const token = generateToken({ sub: org.id_organisasi, role: "org" });
-
-    const { password: _, ...orgWithoutPassword } = org;
-    return { org: orgWithoutPassword, token };
+    return {
+      org: this.excludeOrgPassword(org),
+      token: generateToken({ sub: org.id_organisasi, role: "org" }),
+    };
   }
 
-  async loginOrganization(
-    data: LoginDTO
-  ): Promise<{ org: Omit<OrganizationDTO, "password">; token: string }> {
-    const { email, password } = data;
+  async loginOrganization(data: LoginDTO): Promise<{ org: Omit<OrganizationDTO, "password">; token: string }> {
+    this.validateLogin(data.email, data.password);
 
+    const org = await this.organizationRepository.findByEmail(data.email);
+    if (!org || !(await this.verifyPassword(data.password, org.password!))) {
+      throw new AppError("Invalid email or password", 401);
+    }
+
+    return {
+      org: this.excludeOrgPassword(org),
+      token: generateToken({ sub: org.id_organisasi, role: "org" }),
+    };
+  }
+
+  private validateRegistration(email?: string, password?: string, name?: string): void {
+    if (!email || !password || !name) {
+      throw new AppError("Name, email, and password are required", 400);
+    }
+  }
+
+  private validateLogin(email?: string, password?: string): void {
     if (!email || !password) {
       throw new AppError("Email and password are required", 400);
     }
+  }
 
-    const org = await this.organizationRepository.findByEmail(email);
-    if (!org) {
-      throw new AppError("Invalid email or password", 401);
-    }
+  private async hashPassword(password: string): Promise<string> {
+    return await bcrypt.hash(password, 10);
+  }
 
-    const match = await bcrypt.compare(password, org.password!);
-    if (!match) {
-      throw new AppError("Invalid email or password", 401);
-    }
+  private async verifyPassword(plain: string, hashed: string): Promise<boolean> {
+    return await bcrypt.compare(plain, hashed);
+  }
 
-    const token = generateToken({ sub: org.id_organisasi, role: "org" });
+  private excludePassword(user: UserDTO): Omit<UserDTO, "password"> {
+    const { password: _, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  }
 
+  private excludeOrgPassword(org: OrganizationDTO): Omit<OrganizationDTO, "password"> {
     const { password: _, ...orgWithoutPassword } = org;
-    return { org: orgWithoutPassword, token };
+    return orgWithoutPassword;
   }
 }
