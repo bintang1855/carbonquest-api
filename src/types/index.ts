@@ -155,12 +155,12 @@ export interface UpdateQuizQuestionDTO {
 export interface UpdateQuizAnswerDTO {
   id_answer?: number; // If provided, update existing; if not, create new
   content: string;
-  is_correct: boolean;
+  points?: number; // Point value for this answer (default: 0)
 }
 
 export interface CreateQuizAnswerDTO {
   content: string;
-  is_correct: boolean;
+  points?: number; // Point value for this answer (default: 0)
 }
 
 export interface SubmitQuizAnswerDTO {
@@ -169,9 +169,7 @@ export interface SubmitQuizAnswerDTO {
 }
 
 export interface QuizSubmissionResultDTO {
-  is_correct: boolean;
   points_earned: number;
-  correct_answer?: string;
   session_id: number;
 }
 
@@ -194,13 +192,13 @@ export interface AnswerDTO {
   id_answer: number;
   id_question: number;
   content: string;
-  is_correct: boolean;
+  points: number;
 }
 
 export interface CreateAnswerDTO {
   id_question: number;
   content: string;
-  is_correct: boolean;
+  points?: number;
 }
 
 export interface SessionDTO {

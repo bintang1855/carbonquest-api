@@ -72,14 +72,12 @@ export class QuizService {
       throw new AppError("Answer does not belong to this question", 400);
     }
 
-    const pointsEarned = answer.is_correct ? answer.question.points || 0 : 0;
+    // Points are directly taken from the answer
+    const pointsEarned = answer.points || 0;
     const session = await this.createQuizSession(userId, data.id_answer, answer.question.id_quiz, pointsEarned);
-    const correctAnswer = this.getCorrectAnswer(answer);
 
     return {
-      is_correct: answer.is_correct,
       points_earned: pointsEarned,
-      correct_answer: correctAnswer,
       session_id: session.id_session,
     };
   }
@@ -101,12 +99,4 @@ export class QuizService {
     });
   }
 
-  private getCorrectAnswer(answer: {
-    is_correct: boolean;
-    question: { answers: Array<{ content: string; is_correct: boolean }> };
-  }): string | undefined {
-    if (answer.is_correct) return undefined;
-    const correct = answer.question.answers.find((a) => a.is_correct);
-    return correct?.content;
-  }
 }

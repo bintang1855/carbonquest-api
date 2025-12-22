@@ -71,7 +71,7 @@ model Answers {
   id_answer   Int      @id @default(autoincrement())
   id_question Int
   content     String   @db.Text
-  is_correct  Boolean  @default(false)
+  points      Int      @default(0)  // Point value for this answer
 
   question Questions @relation(fields: [id_question], references: [id_question], onDelete: Cascade)
   sessions Sessions[]
