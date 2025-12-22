@@ -37,7 +37,6 @@ export class QuizRepository {
       data: {
         title: data.title,
         category: data.category,
-        total_points: data.total_points,
         id_creator: data.id_creator,
         created_at: new Date(),
       },
@@ -49,13 +48,11 @@ export class QuizRepository {
       data: {
         title: data.title,
         category: data.category,
-        total_points: data.total_points,
         id_creator: data.id_creator,
         created_at: new Date(),
         questions: {
           create: data.questions?.map((q, index) => ({
             content: q.content,
-            points: q.points || 10,
             order: q.order || index + 1,
             answers: {
               create: q.answers.map((a) => ({
@@ -81,7 +78,6 @@ export class QuizRepository {
       data: {
         title: data.title,
         category: data.category,
-        total_points: data.total_points,
       },
     });
   }
@@ -125,7 +121,6 @@ export class QuizRepository {
       data: {
         title: data.title,
         category: data.category,
-        total_points: data.total_points,
       },
     });
   }
@@ -172,7 +167,6 @@ export class QuizRepository {
       where: { id_question: question.id_question },
       data: {
         content: question.content,
-        points: question.points,
         order: question.order || index + 1,
       },
     });
@@ -189,7 +183,6 @@ export class QuizRepository {
       data: {
         id_quiz: quizId,
         content: question.content,
-        points: question.points || 10,
         order: question.order || index + 1,
         answers: {
           create: question.answers.map((a) => ({
