@@ -118,7 +118,6 @@ export interface QuizDTO {
   id_quiz: number;
   title: string;
   category?: string | null;
-  total_points?: number | null;
   id_creator: number;
   created_at?: Date | null;
 }
@@ -126,13 +125,11 @@ export interface QuizDTO {
 export interface CreateQuizDTO {
   title: string;
   category?: string;
-  total_points?: number;
   questions?: CreateQuizQuestionDTO[];
 }
 
 export interface CreateQuizQuestionDTO {
   content: string;
-  points?: number;
   order?: number;
   answers: CreateQuizAnswerDTO[];
 }
@@ -140,14 +137,12 @@ export interface CreateQuizQuestionDTO {
 export interface UpdateQuizWithQuestionsDTO {
   title?: string;
   category?: string;
-  total_points?: number;
   questions?: UpdateQuizQuestionDTO[];
 }
 
 export interface UpdateQuizQuestionDTO {
   id_question?: number; // If provided, update existing; if not, create new
   content: string;
-  points?: number;
   order?: number;
   answers: UpdateQuizAnswerDTO[];
 }
@@ -177,14 +172,12 @@ export interface QuestionDTO {
   id_question: number;
   id_quiz: number;
   content: string;
-  points?: number | null;
   order?: number | null;
 }
 
 export interface CreateQuestionDTO {
   id_quiz: number;
   content: string;
-  points?: number;
   order?: number;
 }
 

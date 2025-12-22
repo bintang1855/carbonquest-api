@@ -108,7 +108,6 @@ const options: swaggerJsdoc.Options = {
             id_question: { type: "integer" },
             id_quiz: { type: "integer" },
             content: { type: "string" },
-            points: { type: "integer", nullable: true },
             order: { type: "integer", nullable: true },
           },
         },
@@ -127,7 +126,6 @@ const options: swaggerJsdoc.Options = {
             id_quiz: { type: "integer" },
             title: { type: "string" },
             category: { type: "string", nullable: true },
-            total_points: { type: "integer", nullable: true },
             id_creator: { type: "integer" },
             created_at: {
               type: "string",
@@ -141,7 +139,6 @@ const options: swaggerJsdoc.Options = {
                 properties: {
                   id_question: { type: "integer" },
                   content: { type: "string" },
-                  points: { type: "integer" },
                   order: { type: "integer" },
                   answers: {
                     type: "array",
@@ -163,10 +160,6 @@ const options: swaggerJsdoc.Options = {
             category: {
               type: "string",
               example: "Mingguan",
-            },
-            total_points: {
-              type: "integer",
-              example: 100,
             },
             questions: {
               type: "array",
