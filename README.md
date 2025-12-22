@@ -1,11 +1,11 @@
 # CarbonQuest Gamification API
 
-A comprehensive gamification API built with **Express.js**, **TypeScript**, **Prisma**, and **PostgreSQL**. This API follows a clean **Model-Service-Repository** architecture pattern with standardized responses, file upload support, and complete Swagger documentation.
+A comprehensive gamification API built with **Express.js**, **TypeScript**, **Prisma**, and **PostgreSQL**. This API follows a clean **Controller-Service-Repository** layered architecture with standardized responses, file upload support, and complete Swagger documentation.
 
 ## 🚀 Features
 
 - ✅ **TypeScript** - Full type safety across the entire codebase
-- ✅ **Model-Service-Repository Architecture** - Clean separation of concerns
+- ✅ **Controller-Service-Repository Architecture** - Clean separation of concerns
 - ✅ **Prisma ORM** - Type-safe database operations
 - ✅ **JWT Authentication** - Secure user and organization authentication
 - ✅ **Secure File Upload** - Multer with rate limiting and validation
@@ -14,7 +14,7 @@ A comprehensive gamification API built with **Express.js**, **TypeScript**, **Pr
 - ✅ **Swagger Documentation** - Interactive API documentation at `/docs`
 - ✅ **Role-Based Access Control** - User and Organization roles with protected endpoints
 - ✅ **Docker Support** - Full containerization with Docker Compose
-- ✅ **Error Handling** - Centralized error handling middleware
+- ✅ **Error Handling** - Centralized error handling with custom AppError class
 
 ## 📁 Project Structure
 
@@ -22,60 +22,100 @@ A comprehensive gamification API built with **Express.js**, **TypeScript**, **Pr
 src/
 ├── config/
 │   └── swagger.ts              # Swagger/OpenAPI configuration
+├── controllers/                 # HTTP request handlers
+│   ├── article.controller.ts
+│   ├── auth.controller.ts
+│   ├── mission.controller.ts
+│   ├── organization.controller.ts
+│   ├── quiz.controller.ts
+│   ├── session.controller.ts
+│   ├── user.controller.ts
+│   └── user-mission.controller.ts
 ├── middleware/
 │   ├── auth.middleware.ts      # JWT authentication middleware
-│   ├── error.middleware.ts     # Global error handling
+│   ├── error.middleware.ts     # Global error handling with AppError
 │   ├── rate-limit.middleware.ts # Upload rate limiting
 │   └── upload.middleware.ts    # File upload middleware (5MB, images only)
-├── modules/
-│   ├── auth/
-│   │   ├── auth.service.ts     # Authentication business logic
-│   │   └── auth.routes.ts      # Auth endpoints (login/register)
-│   ├── users/
-│   │   ├── user.repository.ts  # User data access layer
-│   │   ├── user.service.ts     # User business logic
-│   │   └── user.routes.ts      # User endpoints (CRUD + profile image)
-│   ├── organizations/
-│   │   ├── organization.repository.ts
-│   │   ├── organization.service.ts
-│   │   └── organization.routes.ts
-│   ├── quizzes/
-│   │   ├── quiz.repository.ts  # Quiz management
-│   │   ├── quiz.service.ts
-│   │   └── quiz.routes.ts
-│   ├── missions/
-│   │   ├── mission.repository.ts
-│   │   ├── mission.service.ts
-│   │   └── mission.routes.ts   # Supports image upload
-│   ├── user-missions/
-│   │   ├── user-mission.repository.ts
-│   │   ├── user-mission.service.ts
-│   │   └── user-mission.routes.ts
-│   ├── questions/
-│   │   ├── question.repository.ts
-│   │   ├── question.service.ts
-│   │   └── question.routes.ts  # Belongs to Quizzes
-│   ├── answers/
-│   │   ├── answer.repository.ts
-│   │   ├── answer.service.ts
-│   │   └── answer.routes.ts    # Full CRUD with is_correct flag
-│   ├── sessions/
-│   │   ├── session.repository.ts
-│   │   ├── session.service.ts
-│   │   └── session.routes.ts
-│   └── articles/
-│       ├── article.repository.ts
-│       ├── article.service.ts
-│       └── article.routes.ts   # Supports image upload
+├── repositories/                # Data access layer (Prisma queries)
+│   ├── article.repository.ts
+│   ├── mission.repository.ts
+│   ├── organization.repository.ts
+│   ├── quiz.repository.ts
+│   ├── session.repository.ts
+│   ├── user.repository.ts
+│   └── user-mission.repository.ts
+├── routes/                      # API route definitions with OpenAPI docs
+│   ├── article.routes.ts
+│   ├── auth.routes.ts
+│   ├── file.routes.ts
+│   ├── mission.routes.ts
+│   ├── organization.routes.ts
+│   ├── quiz.routes.ts
+│   ├── session.routes.ts
+│   ├── user.routes.ts
+│   └── user-mission.routes.ts
+├── services/                    # Business logic layer
+│   ├── article.service.ts
+│   ├── auth.service.ts
+│   ├── mission.service.ts
+│   ├── organization.service.ts
+│   ├── quiz.service.ts
+│   ├── session.service.ts
+│   ├── user.service.ts
+│   └── user-mission.service.ts
 ├── prisma/
 │   └── client.ts               # Prisma client singleton
 ├── types/
-│   └── index.ts                # TypeScript types and interfaces
+│   └── index.ts                # TypeScript DTOs and interfaces
 ├── utils/
+│   ├── helpers.ts              # Utility functions (parseId, removeUndefinedFields, etc.)
 │   └── response.ts             # Response utility functions
 ├── app.ts                      # Express app configuration
 └── server.ts                   # Server entry point
 ```
+
+## 🏗️ Architecture Pattern
+
+### Controller-Service-Repository Pattern
+
+```
+HTTP Request
+     ↓
+┌─────────────────┐
+│    ROUTES       │  Routing + OpenAPI documentation
+└────────┬────────┘
+         ↓
+┌─────────────────┐
+│   CONTROLLER    │  Handle request/response, input validation
+└────────┬────────┘
+         ↓
+┌─────────────────┐
+│    SERVICE      │  Business logic
+└────────┬────────┘
+         ↓
+┌─────────────────┐
+│   REPOSITORY    │  Database operations (Prisma)
+└────────┬────────┘
+         ↓
+     Database
+```
+
+### Layer Responsibilities
+
+| Layer          | Responsibility                                                   |
+| -------------- | ---------------------------------------------------------------- |
+| **Routes**     | URL mapping, middleware chain, OpenAPI documentation             |
+| **Controller** | Parse request, validate input, call service, send response       |
+| **Service**    | Business rules, data transformation, cross-repository operations |
+| **Repository** | Database queries, Prisma operations                              |
+
+### Benefits
+
+- ✅ Single responsibility per layer
+- ✅ Easier unit testing
+- ✅ Reusable business logic
+- ✅ Database-agnostic service layer
+- ✅ Clean, maintainable codebase
 
 ## 🛠️ Installation
 
@@ -90,7 +130,8 @@ src/
 1. **Clone the repository**
 
 ```bash
-cd c:\Dev\Backend\carbonquest-test-api
+git clone https://github.com/bintang1855/carbonquest-api.git
+cd carbonquest-api
 ```
 
 2. **Install dependencies**
@@ -139,11 +180,20 @@ npm run build
 npm start
 ```
 
+### Prisma Studio (Database GUI)
+
+```bash
+npx prisma studio
+```
+
+Opens on `http://localhost:5555`
+
 ## 📚 API Documentation
 
 Once the server is running, access the interactive Swagger documentation at:
 
-**http://localhost:4000/docs**
+- **Local:** http://localhost:4000/docs
+- **Production:** https://carbonquest-api.bintangap.my.id/docs
 
 ## 🔑 Authentication
 
@@ -166,12 +216,9 @@ Content-Type: application/json
   "password": "securePassword123",
   "last_name": "Doe",
   "birth_date": "1990-01-01",
-  "phone": "081234567890",
-  "profile_image": ""
+  "phone": "081234567890"
 }
 ```
-
-**Note:** Only `name`, `email`, and `password` are required. `profile_image` defaults to empty string.
 
 #### User Login
 
@@ -185,23 +232,9 @@ Content-Type: application/json
 }
 ```
 
-#### Organization Registration
-
-```bash
-POST /auth/org/register
-Content-Type: application/json
-
-{
-  "name": "Green Corp",
-  "email": "info@greencorp.com",
-  "password": "securePassword123",
-  "desc": "Environmental sustainability organization"
-}
-```
-
 ### Using JWT Tokens
 
-After successful login, you'll receive a JWT token. Include it in subsequent requests:
+After successful login, include the token in subsequent requests:
 
 ```bash
 Authorization: Bearer <your-jwt-token>
@@ -220,75 +253,60 @@ Authorization: Bearer <your-jwt-token>
 - `POST /auth/org/register` - Register new organization
 - `POST /auth/org/login` - Organization login
 
-### Users (Requires Authentication)
+### Users
 
 - `GET /users` - Get all users (Organization only)
-- `GET /users/:id` - Get user by ID
 - `GET /users/leaderboard` - Get user leaderboard with points
-- `PUT /users/:id` - Update user profile (User can only update own profile)
-- `PUT /users/:id/profile-image` - Upload profile image (multipart/form-data, max 5MB)
-- `PUT /users/password` - Update password (User only)
-- `DELETE /users/:id` - Delete user account (User can delete own, Org can delete any)
+- `GET /users/:id` - Get user by ID
+- `PUT /users/:id` - Update user profile
+- `PUT /users/:id/profile-image` - Upload profile image
+- `PUT /users/password` - Update password
+- `DELETE /users/:id` - Delete user account
 
-### Organizations (Requires Authentication)
+### Organizations
 
-- `GET /organizations` - Get all organizations (Organization only)
+- `GET /organizations` - Get all organizations
 - `PUT /organizations/password` - Update organization password
 
-### Quizzes (New)
+### Quizzes
 
-- `POST /quizzes` - Create quiz (Organization only)
+- `POST /quizzes` - Create quiz with questions & answers
 - `GET /quizzes` - Get all quizzes with question counts
-- `GET /quizzes/:id` - Get quiz by ID
-- `PUT /quizzes/:id` - Update quiz (Organization only)
-- `DELETE /quizzes/:id` - Delete quiz (Organization only)
+- `GET /quizzes/:id` - Get quiz by ID with full details
+- `PUT /quizzes/:id` - Update quiz with questions & answers
+- `DELETE /quizzes/:id` - Delete quiz
+- `POST /quizzes/submit` - Submit quiz answer
 
 ### Missions
 
-- `POST /missions` - Create mission with image upload (Organization only)
+- `POST /missions` - Create mission with image upload
 - `GET /missions` - Get all missions
 - `GET /missions/:id` - Get mission by ID
-- `PUT /missions/:id` - Update mission (Organization only)
-- `DELETE /missions/:id` - Delete mission (Organization only)
+- `PUT /missions/:id` - Update mission
+- `DELETE /missions/:id` - Delete mission
 
 ### User Missions
 
-- `POST /user-missions` - Start a mission (User only)
-- `PUT /user-missions/:id` - Update mission progress (User only)
-- `GET /me/missions` - Get my missions (User only)
-
-### Questions & Answers
-
-- `POST /questions` - Create question for a quiz (Organization only)
-- `GET /questions` - Get all questions
-- `GET /questions/:id` - Get question by ID
-- `GET /questions/quiz/:quiz_id` - Get questions by quiz ID
-- `PUT /questions/:id` - Update question (Organization only)
-- `DELETE /questions/:id` - Delete question (Organization only)
-- `POST /questions/:id/answers` - Create answer with is_correct flag (Organization only)
-- `GET /questions/:id/answers` - Get answers for question
-- `PUT /answers/:id` - Update answer (Organization only)
-- `DELETE /answers/:id` - Delete answer (Organization only)
+- `POST /user-missions` - Start a mission
+- `PUT /user-missions/:id` - Update mission progress
+- `GET /me/missions` - Get my missions
 
 ### Sessions
 
-- `POST /sessions` - Create session (User only)
-- `PUT /sessions/:id` - Update session (User only)
-- `GET /me/sessions` - Get my sessions (User only)
+- `GET /me/sessions` - Get my sessions
+- `GET /me/sessions/weekly-points` - Get daily points history
 
 ### Articles
 
-- `POST /articles` - Create article with image upload (Organization only)
+- `POST /articles` - Create article with image
 - `GET /articles` - Get all articles
 - `GET /articles/:id` - Get article by ID
-- `PUT /articles/:id` - Update article (Organization only)
-- `DELETE /articles/:id` - Delete article (Organization only)
+- `PUT /articles/:id` - Update article
+- `DELETE /articles/:id` - Delete article
 
-### Files (Secure Access)
+### Files
 
-- `GET /files/:filename` - Get uploaded file (images only, validated)
-
-**Note:** Files are no longer accessible via static `/uploads` folder for security. Use `/files/:filename` endpoint instead.
+- `GET /files/:filename` - Get uploaded file (secure access)
 
 ## 📦 Response Format
 
@@ -316,70 +334,46 @@ All API responses follow this standardized format:
 
 ## 🔐 Role-Based Access Control
 
-| Endpoint                     | User | Organization |
-| ---------------------------- | ---- | ------------ |
-| GET /users                   | ❌   | ✅           |
-| GET /users/leaderboard       | ✅   | ✅           |
-| PUT /users/:id               | ✅   | ❌           |
-| PUT /users/:id/profile-image | ✅   | ❌           |
-| DELETE /users/:id            | ✅   | ✅           |
-| POST /quizzes                | ❌   | ✅           |
-| POST /missions               | ❌   | ✅           |
-| POST /user-missions          | ✅   | ❌           |
-| POST /questions              | ❌   | ✅           |
-| POST /articles               | ❌   | ✅           |
+| Endpoint               | User     | Organization |
+| ---------------------- | -------- | ------------ |
+| GET /users             | ❌       | ✅           |
+| GET /users/leaderboard | ✅       | ✅           |
+| PUT /users/:id         | ✅ (own) | ❌           |
+| POST /quizzes          | ❌       | ✅           |
+| POST /missions         | ❌       | ✅           |
+| POST /user-missions    | ✅       | ❌           |
+| POST /articles         | ❌       | ✅           |
 
-**Notes:**
+## 🐳 Docker Deployment
 
-- Users can only update/delete their own profile
-- Organizations can delete any user
-- **File Upload Security:**
-  - Upload rate limit: 10 requests per 15 minutes
-  - Files stored in `/uploads`, accessed via `/files/:filename`
-  - Path traversal protection and file type validation
-  - Max file size: 5MB
-  - Allowed formats: jpg, jpeg, png, gif, webp
-  - Cached for 1 year (immutable)
-
-## 🧪 Testing with Swagger
-
-1. Start the server
-2. Navigate to `http://localhost:4000/docs`
-3. Click "Authorize" button
-4. Enter your JWT token (with "Bearer " prefix)
-5. Test any endpoint directly from the browser
-
-## 🐳 Docker Support
-
-The project includes Docker configuration:
+### Start Services
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
-## 📝 Scripts
+### Restart After Code Changes
 
-- `npm run dev` - Start development server with hot-reload
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm start` - Start production server
-- `npm run prisma:generate` - Generate Prisma Client
-- `npm run prisma:migrate` - Run database migrations
+```bash
+git pull origin <branch>
+docker compose restart app
+```
 
-## 🏗️ Architecture Patterns
+### View Logs
 
-### Model-Service-Repository Pattern
+```bash
+docker logs carbonquest-api --tail 50 -f
+```
 
-- **Repository**: Data access layer - handles all Prisma queries
-- **Service**: Business logic layer - processes data, enforces rules
-- **Controller/Routes**: Presentation layer - handles HTTP requests/responses
+## 📝 NPM Scripts
 
-### Benefits
-
-- ✅ Separation of concerns
-- ✅ Easier testing
-- ✅ Better maintainability
-- ✅ Reusable business logic
-- ✅ Type safety throughout
+| Script                    | Description                              |
+| ------------------------- | ---------------------------------------- |
+| `npm run dev`             | Start development server with hot-reload |
+| `npm run build`           | Compile TypeScript to JavaScript         |
+| `npm start`               | Start production server                  |
+| `npm run prisma:generate` | Generate Prisma Client                   |
+| `npm run prisma:migrate`  | Run database migrations                  |
 
 ## 🔧 Technology Stack
 
@@ -391,48 +385,8 @@ docker-compose up -d
 - **Authentication**: JWT (jsonwebtoken)
 - **File Upload**: Multer 2.0
 - **Documentation**: Swagger/OpenAPI 3.0
-- **Validation**: bcryptjs for password hashing
-- **Container**: Docker & Docker Compose
-
-## ✨ Key Features Explained
-
-### Quiz System
-
-- **Hierarchical Structure**: Quizzes → Questions → Answers
-- **Categories**: Support for Kuis Harian, Mingguan, Bulanan
-- **Auto Counting**: Question counts automatically aggregated
-- **Correct Answers**: `is_correct` flag to mark right answers
-- **Ordering**: Questions can be ordered within a quiz
-
-### User Profile Management
-
-- **Profile Images**: Upload and manage user profile pictures
-- **Full CRUD**: Users can update profile info and delete accounts
-- **Default Values**: Profile image defaults to empty string on registration
-- **Self-Service**: Users manage their own data
-
-### File Uploads
-
-- **Multiple Contexts**: Missions, Articles, and Profile Images
-- **Rate Limited**: 10 uploads per 15 minutes per IP
-- **Size Limits**: 5MB maximum per file
-- **Type Validation**: Images only (jpg, jpeg, png, gif, webp)
-- **Secure Access**: Files accessed via `/files/:filename` with validation
-- **Storage**: Local filesystem in `/uploads` directory
-- **Security**: Path traversal protection, MIME type validation, filename sanitization
-
-### Leaderboard System
-
-- **Auto Calculation**: Points from quiz sessions + completed missions
-- **Profile Integration**: Includes user profile images
-- **Sorting**: Ranked by total points descending
-- **Transparency**: Shows session and mission points separately
-
-## 📚 Additional Resources
-
 - **Password Hashing**: bcryptjs
-- **Documentation**: Swagger/OpenAPI
-- **Development**: tsx, nodemon
+- **Container**: Docker & Docker Compose
 
 ## 📄 License
 
