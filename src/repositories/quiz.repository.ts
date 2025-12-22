@@ -60,7 +60,7 @@ export class QuizRepository {
             answers: {
               create: q.answers.map((a) => ({
                 content: a.content,
-                is_correct: a.is_correct,
+                points: a.points || 0,
               })),
             },
           })),
@@ -194,7 +194,7 @@ export class QuizRepository {
         answers: {
           create: question.answers.map((a) => ({
             content: a.content,
-            is_correct: a.is_correct,
+            points: a.points || 0,
           })),
         },
       },
@@ -239,7 +239,7 @@ export class QuizRepository {
     if (exists) {
       await prisma.answers.update({
         where: { id_answer: answer.id_answer },
-        data: { content: answer.content, is_correct: answer.is_correct },
+        data: { content: answer.content, points: answer.points || 0 },
       });
       return true;
     }
@@ -256,7 +256,7 @@ export class QuizRepository {
       data: {
         id_question: questionId,
         content: answer.content,
-        is_correct: answer.is_correct,
+        points: answer.points || 0,
       },
     });
   }
