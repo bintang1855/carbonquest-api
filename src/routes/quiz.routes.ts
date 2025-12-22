@@ -58,14 +58,14 @@ const controller = new QuizController();
  *                         type: object
  *                         required:
  *                           - content
- *                           - is_correct
  *                         properties:
  *                           content:
  *                             type: string
  *                             example: Emisi gas rumah kaca
- *                           is_correct:
- *                             type: boolean
- *                             example: true
+ *                           points:
+ *                             type: integer
+ *                             example: 10
+ *                             description: Point value for this answer (default 0)
  *     responses:
  *       201:
  *         description: Quiz created successfully
@@ -181,8 +181,9 @@ router.get(
  *                             type: integer
  *                           content:
  *                             type: string
- *                           is_correct:
- *                             type: boolean
+ *                           points:
+ *                             type: integer
+ *                             description: Point value for this answer
  *     responses:
  *       200:
  *         description: Quiz updated successfully
