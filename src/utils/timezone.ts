@@ -31,7 +31,6 @@ export function convertDatesToJakarta<T>(obj: T): T {
     const result: Record<string, unknown> = {};
     
     for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      // Deteksi field tanggal berdasarkan nama
       const isDateField = /date|time|created|updated|_at$/i.test(key);
       
       if (isDateField && value instanceof Date) {
