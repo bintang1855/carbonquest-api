@@ -43,7 +43,6 @@ model Quizzes {
   id_quiz       Int       @id @default(autoincrement())
   title         String    @db.VarChar(255)
   category      String?   @db.VarChar(100)  // Harian, Mingguan, Bulanan
-  total_points  Int?      @default(0)
   id_creator    Int
   created_at    DateTime? @default(now())
 
@@ -58,7 +57,6 @@ model Questions {
   id_question Int      @id @default(autoincrement())
   id_quiz     Int
   content     String   @db.Text
-  points      Int?     @default(10)
   order       Int?     // Urutan pertanyaan
 
   quiz    Quizzes   @relation(fields: [id_quiz], references: [id_quiz], onDelete: Cascade)
@@ -71,7 +69,7 @@ model Answers {
   id_answer   Int      @id @default(autoincrement())
   id_question Int
   content     String   @db.Text
-  is_correct  Boolean  @default(false)
+  points      Int      @default(0)  // Point value for this answer
 
   question Questions @relation(fields: [id_question], references: [id_question], onDelete: Cascade)
   sessions Sessions[]

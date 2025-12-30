@@ -30,9 +30,6 @@ const controller = new QuizController();
  *               category:
  *                 type: string
  *                 example: Mingguan
- *               total_points:
- *                 type: integer
- *                 example: 100
  *               questions:
  *                 type: array
  *                 description: Optional - include questions and answers to create them together
@@ -45,9 +42,6 @@ const controller = new QuizController();
  *                     content:
  *                       type: string
  *                       example: Apa penyebab utama perubahan iklim?
- *                     points:
- *                       type: integer
- *                       example: 10
  *                     order:
  *                       type: integer
  *                       example: 1
@@ -58,14 +52,14 @@ const controller = new QuizController();
  *                         type: object
  *                         required:
  *                           - content
- *                           - is_correct
  *                         properties:
  *                           content:
  *                             type: string
  *                             example: Emisi gas rumah kaca
- *                           is_correct:
- *                             type: boolean
- *                             example: true
+ *                           points:
+ *                             type: integer
+ *                             example: 10
+ *                             description: Point value for this answer (default 0)
  *     responses:
  *       201:
  *         description: Quiz created successfully
@@ -157,8 +151,6 @@ router.get(
  *                 type: string
  *               category:
  *                 type: string
- *               total_points:
- *                 type: integer
  *               questions:
  *                 type: array
  *                 items:
@@ -168,8 +160,6 @@ router.get(
  *                       type: integer
  *                     content:
  *                       type: string
- *                     points:
- *                       type: integer
  *                     order:
  *                       type: integer
  *                     answers:
@@ -181,8 +171,9 @@ router.get(
  *                             type: integer
  *                           content:
  *                             type: string
- *                           is_correct:
- *                             type: boolean
+ *                           points:
+ *                             type: integer
+ *                             description: Point value for this answer
  *     responses:
  *       200:
  *         description: Quiz updated successfully

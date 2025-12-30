@@ -108,7 +108,6 @@ const options: swaggerJsdoc.Options = {
             id_question: { type: "integer" },
             id_quiz: { type: "integer" },
             content: { type: "string" },
-            points: { type: "integer", nullable: true },
             order: { type: "integer", nullable: true },
           },
         },
@@ -118,7 +117,7 @@ const options: swaggerJsdoc.Options = {
             id_answer: { type: "integer" },
             id_question: { type: "integer" },
             content: { type: "string" },
-            is_correct: { type: "boolean" },
+            points: { type: "integer", description: "Point value for this answer" },
           },
         },
         Quiz: {
@@ -127,7 +126,6 @@ const options: swaggerJsdoc.Options = {
             id_quiz: { type: "integer" },
             title: { type: "string" },
             category: { type: "string", nullable: true },
-            total_points: { type: "integer", nullable: true },
             id_creator: { type: "integer" },
             created_at: {
               type: "string",
@@ -141,7 +139,6 @@ const options: swaggerJsdoc.Options = {
                 properties: {
                   id_question: { type: "integer" },
                   content: { type: "string" },
-                  points: { type: "integer" },
                   order: { type: "integer" },
                   answers: {
                     type: "array",
@@ -163,10 +160,6 @@ const options: swaggerJsdoc.Options = {
             category: {
               type: "string",
               example: "Mingguan",
-            },
-            total_points: {
-              type: "integer",
-              example: 100,
             },
             questions: {
               type: "array",
@@ -191,15 +184,16 @@ const options: swaggerJsdoc.Options = {
                     minItems: 2,
                     items: {
                       type: "object",
-                      required: ["content", "is_correct"],
+                      required: ["content"],
                       properties: {
                         content: {
                           type: "string",
                           example: "Emisi gas rumah kaca",
                         },
-                        is_correct: {
-                          type: "boolean",
-                          example: true,
+                        points: {
+                          type: "integer",
+                          example: 10,
+                          description: "Point value for this answer (default: 0)",
                         },
                       },
                     },
@@ -228,22 +222,10 @@ const options: swaggerJsdoc.Options = {
         QuizSubmissionResult: {
           type: "object",
           properties: {
-            is_correct: {
-              type: "boolean",
-              example: true,
-              description: "Whether the answer is correct",
-            },
             points_earned: {
               type: "integer",
               example: 10,
               description: "Points earned from this answer",
-            },
-            correct_answer: {
-              type: "string",
-              example: "Emisi gas rumah kaca",
-              nullable: true,
-              description:
-                "The correct answer (only shown if user answered wrong)",
             },
             session_id: {
               type: "integer",
@@ -331,7 +313,6 @@ const options: swaggerJsdoc.Options = {
   apis: [
     "./dist/routes/*.routes.js",
     "./dist/app.js",
-    // Fallback untuk development
     "./src/routes/*.routes.ts",
     "./src/app.ts",
   ],
