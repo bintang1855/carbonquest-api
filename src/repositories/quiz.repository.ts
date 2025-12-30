@@ -113,8 +113,6 @@ export class QuizRepository {
     });
   }
 
-  // ==================== Private Helper Methods ====================
-
   private async updateQuizMetadata(id: number, data: UpdateQuizWithQuestionsDTO) {
     await prisma.quizzes.update({
       where: { id_quiz: id },

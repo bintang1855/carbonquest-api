@@ -1,6 +1,5 @@
 import { Request } from "express";
 
-// Standardized API response types
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -8,15 +7,13 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
-// JWT payload types
 export interface JwtPayload {
-  sub: number; // user id or org id
+  sub: number;
   role: "user" | "org";
   iat?: number;
   exp?: number;
 }
 
-// Extended Express Request with user
 export interface AuthenticatedRequest<
   P = any,
   ResBody = any,
@@ -26,7 +23,6 @@ export interface AuthenticatedRequest<
   user: JwtPayload;
 }
 
-// DTOs and domain types
 export interface UserDTO {
   id_user: number;
   name: string;
@@ -34,7 +30,7 @@ export interface UserDTO {
   birth_date?: Date | null;
   email: string;
   phone?: string | null;
-  password?: string; // Optional in responses
+  password?: string;
   profile_image?: string | null;
 }
 
@@ -141,21 +137,21 @@ export interface UpdateQuizWithQuestionsDTO {
 }
 
 export interface UpdateQuizQuestionDTO {
-  id_question?: number; // If provided, update existing; if not, create new
+  id_question?: number;
   content: string;
   order?: number;
   answers: UpdateQuizAnswerDTO[];
 }
 
 export interface UpdateQuizAnswerDTO {
-  id_answer?: number; // If provided, update existing; if not, create new
+  id_answer?: number;
   content: string;
-  points?: number; // Point value for this answer (default: 0)
+  points?: number;
 }
 
 export interface CreateQuizAnswerDTO {
   content: string;
-  points?: number; // Point value for this answer (default: 0)
+  points?: number;
 }
 
 export interface SubmitQuizAnswerDTO {
@@ -220,7 +216,7 @@ export interface UpdateSessionDTO {
 }
 
 export interface WeeklyPointsDTO {
-  week: string; // Date in YYYY-MM-DD format (represents a single day)
+  week: string;
   mission_points: number;
   quiz_points: number;
   total_points: number;

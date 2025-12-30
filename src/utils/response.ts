@@ -9,7 +9,6 @@ export class ResponseUtil {
     data?: T,
     statusCode: number = 200
   ): Response {
-    // Auto-convert semua DateTime ke timezone Jakarta
     const convertedData = data ? convertDatesToJakarta(data) : data;
     
     const response: ApiResponse<T> = {
