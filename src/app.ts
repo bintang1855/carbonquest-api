@@ -5,7 +5,6 @@ import { swaggerSpec } from "./config/swagger.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import { authLimiter, limiter } from "./middleware/rate-limit.middleware.js";
 
-// Import routes
 import articleRoutes from "./routes/article.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import fileRoutes from "./routes/file.routes.js";
@@ -19,15 +18,12 @@ import userRoutes from "./routes/user.routes.js";
 export const createApp = (): Application => {
   const app = express();
 
-  // Trust proxy - penting untuk rate limiting di balik Cloudflare/reverse proxy
   app.set("trust proxy", 1);
 
-  // Global middleware
-  app.use(limiter); // Apply rate limit ke semua routes
+  app.use(limiter);
   app.use(cors());
   app.use(express.json());
 
-  // Health check endpoint
   /**
    * @openapi
    * /:
@@ -58,7 +54,6 @@ export const createApp = (): Application => {
     });
   });
 
-  // Swagger documentation
   app.use(
     "/docs",
     swaggerUi.serve,
@@ -68,19 +63,17 @@ export const createApp = (): Application => {
     })
   );
 
-  // Mount routes
-  app.use("/auth", authLimiter, authRoutes); // Apply rate limit khusus untuk auth
-  app.use("/files", fileRoutes); // Secure file access
+  app.use("/auth", authLimiter, authRoutes);
+  app.use("/files", fileRoutes);
   app.use("/users", userRoutes);
   app.use("/organizations", organizationRoutes);
   app.use("/missions", missionRoutes);
   app.use("/user-missions", userMissionRoutes);
   app.use("/quizzes", quizRoutes);
-  app.use("/me", sessionRoutes); // /me/sessions & /me/sessions/weekly-points
-  app.use("/me", userMissionRoutes); // /me/missions
+  app.use("/me", sessionRoutes);
+  app.use("/me", userMissionRoutes);
   app.use("/articles", articleRoutes);
 
-  // Global error handler (must be last)
   app.use(errorHandler);
 
   return app;

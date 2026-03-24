@@ -33,7 +33,6 @@ export const errorHandler = (
     return;
   }
 
-  // Unhandled errors
   console.error("Unhandled error:", err);
   const response: ApiResponse = {
     success: false,

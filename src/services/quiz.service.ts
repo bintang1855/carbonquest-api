@@ -72,7 +72,6 @@ export class QuizService {
       throw new AppError("Answer does not belong to this question", 400);
     }
 
-    // Points are directly taken from the answer
     const pointsEarned = answer.points || 0;
     const session = await this.createQuizSession(userId, data.id_answer, answer.question.id_quiz, pointsEarned);
 

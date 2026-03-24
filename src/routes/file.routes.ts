@@ -4,6 +4,15 @@ import fs from "fs";
 
 const router = Router();
 
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
+const CONTENT_TYPES: { [key: string]: string } = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+};
+
 /**
  * @openapi
  * /files/{filename}:
@@ -55,53 +64,31 @@ const router = Router();
  *                   example: "File not found"
  */
 router.get("/:filename", (req, res) => {
-  const filename = req.params.filename;
+  const { filename } = req.params;
 
-  // Validasi filename untuk mencegah path traversal attack
-  if (
-    filename.includes("..") ||
-    filename.includes("/") ||
-    filename.includes("\\")
-  ) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid filename",
-    });
+  if (hasPathTraversal(filename)) {
+    return res.status(400).json({ success: false, message: "Invalid filename" });
   }
 
   const filepath = path.join(process.cwd(), "uploads", filename);
 
-  // Check if file exists
   if (!fs.existsSync(filepath)) {
-    return res.status(404).json({
-      success: false,
-      message: "File not found",
-    });
+    return res.status(404).json({ success: false, message: "File not found" });
   }
 
-  // Validasi bahwa file adalah gambar
-  const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
   const ext = path.extname(filename).toLowerCase();
 
-  if (!allowedExtensions.includes(ext)) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid file type",
-    });
+  if (!ALLOWED_EXTENSIONS.includes(ext)) {
+    return res.status(400).json({ success: false, message: "Invalid file type" });
   }
 
-  // Set appropriate content type
-  const contentTypes: { [key: string]: string } = {
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".png": "image/png",
-    ".gif": "image/gif",
-    ".webp": "image/webp",
-  };
-
-  res.setHeader("Content-Type", contentTypes[ext]);
-  res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache for 1 year
+  res.setHeader("Content-Type", CONTENT_TYPES[ext]);
+  res.setHeader("Cache-Control", "public, max-age=31536000");
   return res.sendFile(filepath);
 });
+
+function hasPathTraversal(filename: string): boolean {
+  return filename.includes("..") || filename.includes("/") || filename.includes("\\");
+}
 
 export default router;
