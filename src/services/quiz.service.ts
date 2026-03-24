@@ -7,6 +7,11 @@ import {
 import { QuizRepository } from "../repositories/quiz.repository.js";
 import { SessionRepository } from "../repositories/session.repository.js";
 import { AppError } from "../middleware/error.middleware.js";
+import {
+  getJakartaDayRange,
+  getJakartaMonthRange,
+  getJakartaWeekRange,
+} from "../utils/timezone.js";
 
 export class QuizService {
   private repository: QuizRepository;
@@ -20,7 +25,7 @@ export class QuizService {
   async getAllQuizzes() {
     const quizzes = await this.repository.findAll();
     return await Promise.all(
-      quizzes.map(async (quiz) => ({
+      quizzes.map(async (quiz: { id_quiz: number }) => ({
         ...quiz,
         question_count: await this.repository.getQuestionCount(quiz.id_quiz),
       }))
@@ -70,6 +75,36 @@ export class QuizService {
 
     if (answer.id_question !== data.id_question) {
       throw new AppError("Answer does not belong to this question", 400);
+    }
+
+    const quizCategory = answer.question.quiz?.category?.trim().toLowerCase();
+    const now = new Date();
+
+    let range: { start: Date; end: Date } | null = null;
+    let limitMessage: string | null = null;
+
+    if (quizCategory === "harian") {
+      range = getJakartaDayRange(now);
+      limitMessage = "Quiz harian hanya bisa dijawab 1x per hari";
+    } else if (quizCategory === "mingguan") {
+      range = getJakartaWeekRange(now);
+      limitMessage = "Quiz mingguan hanya bisa dijawab 1x per minggu";
+    } else if (quizCategory === "bulanan") {
+      range = getJakartaMonthRange(now);
+      limitMessage = "Quiz bulanan hanya bisa dijawab 1x per bulan";
+    }
+
+    if (range && limitMessage) {
+      const alreadyAnswered = await this.sessionRepository.hasAnsweredQuizQuestionInRange(
+        userId,
+        data.id_question,
+        range.start,
+        range.end
+      );
+
+      if (alreadyAnswered) {
+        throw new AppError(limitMessage, 400);
+      }
     }
 
     const pointsEarned = answer.points || 0;

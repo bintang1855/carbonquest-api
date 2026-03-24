@@ -19,7 +19,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./uploads:/app/uploads
-      - app_node_modules:/app/node_modules
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/api/health"]
       interval: 30s
@@ -60,4 +59,3 @@ services:
 
 volumes:
   db_data:
-  app_node_modules:
