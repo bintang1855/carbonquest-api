@@ -20,5 +20,5 @@ RUN npx prisma generate
 # expose port 4000 (port di dalam container)
 EXPOSE 4000
 
-# start API directly from TypeScript source using tsx
-CMD ["npx", "tsx", "src/server.ts"]
+# run migrations and start API
+CMD ["npm", "run", "start:prod"]

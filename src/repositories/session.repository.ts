@@ -34,6 +34,27 @@ export class SessionRepository {
     });
   }
 
+  async hasAnsweredQuizQuestionInRange(
+    userId: number,
+    questionId: number,
+    start: Date,
+    end: Date
+  ): Promise<boolean> {
+    const existing = await prisma.sessions.findFirst({
+      where: {
+        id_user: userId,
+        session_type: "quiz",
+        start_time: { gte: start, lt: end },
+        answer: {
+          id_question: questionId,
+        },
+      },
+      select: { id_session: true },
+    });
+
+    return Boolean(existing);
+  }
+
   async getWeeklyPoints(userId: number, weeks: number = 4) {
     const { startDate, endDate } = this.getDateRange(weeks);
 

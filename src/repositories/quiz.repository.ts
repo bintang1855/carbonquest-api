@@ -107,7 +107,7 @@ export class QuizRepository {
       where: { id_answer },
       include: {
         question: {
-          include: { answers: true },
+          include: { answers: true, quiz: true },
         },
       },
     });
@@ -128,7 +128,7 @@ export class QuizRepository {
       where: { id_quiz: quizId },
       select: { id_question: true },
     });
-    return questions.map((q) => q.id_question);
+    return questions.map((q: { id_question: number }) => q.id_question);
   }
 
   private async processQuestions(
@@ -216,7 +216,7 @@ export class QuizRepository {
       where: { id_question: questionId },
       select: { id_answer: true },
     });
-    return answers.map((a) => a.id_answer);
+    return answers.map((a: { id_answer: number }) => a.id_answer);
   }
 
   private async updateOrCreateAnswer(
