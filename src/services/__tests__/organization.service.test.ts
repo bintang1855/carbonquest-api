@@ -32,7 +32,12 @@ describe("OrganizationService", () => {
     jest
       .spyOn(OrganizationRepository.prototype, "findById")
       .mockResolvedValue({ password: "hash" } as any);
-    jest.spyOn(bcrypt, "compare").mockResolvedValue(false);
+    (
+      jest.spyOn(bcrypt, "compare") as unknown as jest.SpyInstance<
+        Promise<boolean>,
+        any
+      >
+    ).mockResolvedValue(false);
 
     const service = new OrganizationService();
     await expect(
@@ -44,8 +49,18 @@ describe("OrganizationService", () => {
     jest
       .spyOn(OrganizationRepository.prototype, "findById")
       .mockResolvedValue({ password: "hash" } as any);
-    jest.spyOn(bcrypt, "compare").mockResolvedValue(true);
-    jest.spyOn(bcrypt, "hash").mockResolvedValue("newhash");
+    (
+      jest.spyOn(bcrypt, "compare") as unknown as jest.SpyInstance<
+        Promise<boolean>,
+        any
+      >
+    ).mockResolvedValue(true);
+    (
+      jest.spyOn(bcrypt, "hash") as unknown as jest.SpyInstance<
+        Promise<string>,
+        any
+      >
+    ).mockResolvedValue("newhash");
     const updateSpy = jest
       .spyOn(OrganizationRepository.prototype, "updatePassword")
       .mockResolvedValue(undefined as any);

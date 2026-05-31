@@ -38,7 +38,12 @@ describe("AuthService", () => {
       email: "a@b.com",
       password: "hashed",
     } as any);
-    jest.spyOn(bcrypt, "hash").mockResolvedValue("hashed");
+    (
+      jest.spyOn(bcrypt, "hash") as unknown as jest.SpyInstance<
+        Promise<string>,
+        any
+      >
+    ).mockResolvedValue("hashed");
     jest.spyOn(jwt, "sign").mockReturnValue("token" as any);
 
     const service = new AuthService();
@@ -58,7 +63,12 @@ describe("AuthService", () => {
       email: "a@b.com",
       password: "hashed",
     } as any);
-    jest.spyOn(bcrypt, "compare").mockResolvedValue(false);
+    (
+      jest.spyOn(bcrypt, "compare") as unknown as jest.SpyInstance<
+        Promise<boolean>,
+        any
+      >
+    ).mockResolvedValue(false);
 
     const service = new AuthService();
     await expect(
@@ -72,7 +82,12 @@ describe("AuthService", () => {
       email: "a@b.com",
       password: "hashed",
     } as any);
-    jest.spyOn(bcrypt, "compare").mockResolvedValue(true);
+    (
+      jest.spyOn(bcrypt, "compare") as unknown as jest.SpyInstance<
+        Promise<boolean>,
+        any
+      >
+    ).mockResolvedValue(true);
     jest.spyOn(jwt, "sign").mockReturnValue("token" as any);
 
     const service = new AuthService();
@@ -95,7 +110,12 @@ describe("AuthService", () => {
       email: "o@b.com",
       password: "hashed",
     } as any);
-    jest.spyOn(bcrypt, "hash").mockResolvedValue("hashed");
+    (
+      jest.spyOn(bcrypt, "hash") as unknown as jest.SpyInstance<
+        Promise<string>,
+        any
+      >
+    ).mockResolvedValue("hashed");
     jest.spyOn(jwt, "sign").mockReturnValue("token" as any);
 
     const service = new AuthService();
@@ -117,7 +137,12 @@ describe("AuthService", () => {
         email: "o@b.com",
         password: "hashed",
       } as any);
-    jest.spyOn(bcrypt, "compare").mockResolvedValue(false);
+    (
+      jest.spyOn(bcrypt, "compare") as unknown as jest.SpyInstance<
+        Promise<boolean>,
+        any
+      >
+    ).mockResolvedValue(false);
 
     const service = new AuthService();
     await expect(
