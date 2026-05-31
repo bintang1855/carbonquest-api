@@ -43,12 +43,12 @@ model Quizzes {
   id_quiz       Int       @id @default(autoincrement())
   title         String    @db.VarChar(255)
   category      String?   @db.VarChar(100)  // Harian, Mingguan, Bulanan
-  total_points  Int?      @default(0)
   id_creator    Int
   created_at    DateTime? @default(now())
 
   creator   Organization @relation(fields: [id_creator], references: [id_organisasi])
   questions Questions[]
+  sessions  Sessions[]
 
   @@map("Quizzes")
 }
@@ -57,7 +57,6 @@ model Questions {
   id_question Int      @id @default(autoincrement())
   id_quiz     Int
   content     String   @db.Text
-  points      Int?     @default(10)
   order       Int?     // Urutan pertanyaan
 
   quiz    Quizzes   @relation(fields: [id_quiz], references: [id_quiz], onDelete: Cascade)
@@ -70,7 +69,7 @@ model Answers {
   id_answer   Int      @id @default(autoincrement())
   id_question Int
   content     String   @db.Text
-  is_correct  Boolean  @default(false)
+  points      Int      @default(0)  // Point value for this answer
 
   question Questions @relation(fields: [id_question], references: [id_question], onDelete: Cascade)
   sessions Sessions[]
@@ -83,12 +82,15 @@ model Sessions {
   start_time   DateTime?
   end_time     DateTime?
   total_points Int?
+  session_type String?  @db.VarChar(50) // 'quiz' atau 'other'
 
   id_user   Int
   id_answer Int
+  id_quiz   Int?
 
-  user   Users   @relation(fields: [id_user], references: [id_user])
-  answer Answers @relation(fields: [id_answer], references: [id_answer])
+  user   Users    @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  answer Answers  @relation(fields: [id_answer], references: [id_answer], onDelete: Cascade)
+  quiz   Quizzes? @relation(fields: [id_quiz], references: [id_quiz], onDelete: SetNull)
 
   @@map("Sessions")
 }
@@ -121,8 +123,8 @@ model User_Missions {
   points         Int?
   completed_time DateTime?
 
-  user    Users    @relation(fields: [id_user], references: [id_user])
-  mission Missions @relation(fields: [id_mission], references: [id_mission])
+  user    Users    @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  mission Missions @relation(fields: [id_mission], references: [id_mission], onDelete: Cascade)
 
   @@map("User_Missions")
 }

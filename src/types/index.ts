@@ -1,6 +1,5 @@
 import { Request } from "express";
 
-// Standardized API response types
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -8,15 +7,13 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
-// JWT payload types
 export interface JwtPayload {
-  sub: number; // user id or org id
+  sub: number;
   role: "user" | "org";
   iat?: number;
   exp?: number;
 }
 
-// Extended Express Request with user
 export interface AuthenticatedRequest<
   P = any,
   ResBody = any,
@@ -26,7 +23,6 @@ export interface AuthenticatedRequest<
   user: JwtPayload;
 }
 
-// DTOs and domain types
 export interface UserDTO {
   id_user: number;
   name: string;
@@ -34,7 +30,7 @@ export interface UserDTO {
   birth_date?: Date | null;
   email: string;
   phone?: string | null;
-  password?: string; // Optional in responses
+  password?: string;
   profile_image?: string | null;
 }
 
@@ -118,7 +114,6 @@ export interface QuizDTO {
   id_quiz: number;
   title: string;
   category?: string | null;
-  total_points?: number | null;
   id_creator: number;
   created_at?: Date | null;
 }
@@ -126,21 +121,59 @@ export interface QuizDTO {
 export interface CreateQuizDTO {
   title: string;
   category?: string;
-  total_points?: number;
+  questions?: CreateQuizQuestionDTO[];
+}
+
+export interface CreateQuizQuestionDTO {
+  content: string;
+  order?: number;
+  answers: CreateQuizAnswerDTO[];
+}
+
+export interface UpdateQuizWithQuestionsDTO {
+  title?: string;
+  category?: string;
+  questions?: UpdateQuizQuestionDTO[];
+}
+
+export interface UpdateQuizQuestionDTO {
+  id_question?: number;
+  content: string;
+  order?: number;
+  answers: UpdateQuizAnswerDTO[];
+}
+
+export interface UpdateQuizAnswerDTO {
+  id_answer?: number;
+  content: string;
+  points?: number;
+}
+
+export interface CreateQuizAnswerDTO {
+  content: string;
+  points?: number;
+}
+
+export interface SubmitQuizAnswerDTO {
+  id_question: number;
+  id_answer: number;
+}
+
+export interface QuizSubmissionResultDTO {
+  points_earned: number;
+  session_id: number;
 }
 
 export interface QuestionDTO {
   id_question: number;
   id_quiz: number;
   content: string;
-  points?: number | null;
   order?: number | null;
 }
 
 export interface CreateQuestionDTO {
   id_quiz: number;
   content: string;
-  points?: number;
   order?: number;
 }
 
@@ -148,13 +181,13 @@ export interface AnswerDTO {
   id_answer: number;
   id_question: number;
   content: string;
-  is_correct: boolean;
+  points: number;
 }
 
 export interface CreateAnswerDTO {
   id_question: number;
   content: string;
-  is_correct: boolean;
+  points?: number;
 }
 
 export interface SessionDTO {
@@ -162,12 +195,16 @@ export interface SessionDTO {
   start_time?: Date | null;
   end_time?: Date | null;
   total_points?: number | null;
+  session_type?: string | null;
   id_user: number;
   id_answer: number;
+  id_quiz?: number | null;
 }
 
 export interface CreateSessionDTO {
   id_answer: number;
+  id_quiz?: number;
+  session_type?: string;
   total_points?: number;
   start_time?: string;
   end_time?: string;
@@ -176,6 +213,15 @@ export interface CreateSessionDTO {
 export interface UpdateSessionDTO {
   total_points?: number;
   end_time?: string;
+}
+
+export interface WeeklyPointsDTO {
+  week: string;
+  mission_points: number;
+  quiz_points: number;
+  total_points: number;
+  missions_completed: number;
+  quizzes_completed: number;
 }
 
 export interface ArticleDTO {

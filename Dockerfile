@@ -1,6 +1,10 @@
 # Dockerfile
 FROM node:22
 
+# Set timezone to Asia/Jakarta
+ENV TZ=Asia/Jakarta
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 WORKDIR /app
 
 # install dependencies
@@ -16,5 +20,5 @@ RUN npx prisma generate
 # expose port 4000 (port di dalam container)
 EXPOSE 4000
 
-# start API directly from TypeScript source using tsx
-CMD ["npx", "tsx", "src/server.ts"]
+# run migrations and start API
+CMD ["npm", "run", "start:prod"]

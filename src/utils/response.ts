@@ -1,5 +1,6 @@
 import { Response } from "express";
 import { ApiResponse } from "../types/index.js";
+import { convertDatesToJakarta } from "./timezone.js";
 
 export class ResponseUtil {
   static success<T>(
@@ -8,10 +9,12 @@ export class ResponseUtil {
     data?: T,
     statusCode: number = 200
   ): Response {
+    const convertedData = data ? convertDatesToJakarta(data) : data;
+    
     const response: ApiResponse<T> = {
       success: true,
       message,
-      data,
+      data: convertedData as T,
     };
     return res.status(statusCode).json(response);
   }

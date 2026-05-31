@@ -1,38 +1,61 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      platforms:
+        - linux/arm64
     container_name: carbonquest-api
     env_file:
       - .env
+    environment:
+      - TZ=Asia/Jakarta
+      - NODE_ENV=production
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
-      - "4000:4000" # HOST:CONTAINER, sekarang pakai 4000
+      - "4000:4000" # HOST:CONTAINER, API server
+      - "5555:5555" # Prisma Studio
     restart: unless-stopped
     volumes:
-      - .:/app
-      - /app/node_modules
-      - uploads_data:/app/uploads # Persistent storage untuk uploads
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   tunnel:
     image: cloudflare/cloudflared:latest
     container_name: carbonquest-tunnel
+    platform: linux/arm64
     command: tunnel run
     environment:
-      - TUNNEL_TOKEN=eyJhIjoiMWE0YTM1MGQ3M2EyYTQ5ZmNjNjdhMmE0NDc4Zjk1NDAiLCJ0IjoiNTQ3NmE4OTYtOGM2Ni00NWFjLTk5NGItNDlmZTE3NmZhMjZjIiwicyI6Ik1qWTNNRGxpTldJdE9XVmxNUzAwWXpJeUxUazJNell0TkRoaE4ySXlOakJoTW1NNSJ9
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     restart: unless-stopped
+    depends_on:
+      - app
 
   db:
     image: postgres:16-alpine
     container_name: carbonquest-db
+    platform: linux/arm64
     environment:
-      POSTGRES_USER: carbonquest
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: carbonquest_db
+      POSTGRES_USER: ${DB_USER:-carbonquest}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+      POSTGRES_DB: ${DB_NAME:-carbonquest_db}
     volumes:
       - db_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-carbonquest} -d ${DB_NAME:-carbonquest_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
 
 volumes:
   db_data:
-  uploads_data:
