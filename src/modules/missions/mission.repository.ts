@@ -34,8 +34,13 @@ export class MissionRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await prisma.missions.delete({
-      where: { id_mission: id },
-    });
+    await prisma.$transaction([
+      prisma.user_Missions.deleteMany({
+        where: { id_mission: id },
+      }),
+      prisma.missions.delete({
+        where: { id_mission: id },
+      }),
+    ]);
   }
 }
