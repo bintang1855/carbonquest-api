@@ -1,24 +1,21 @@
-# Dockerfile
 FROM node:22
 
-# Set timezone to Asia/Jakarta
 ENV TZ=Asia/Jakarta
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 WORKDIR /app
 
-# install dependencies
 COPY package*.json ./
 RUN npm install
 
-# copy ALL source code (including routes with OpenAPI docs)
+# Install PM2
+RUN npm install -g pm2
+
 COPY . .
 
-# generate prisma client
 RUN npx prisma generate
+RUN npm run build
 
-# expose port 4000 (port di dalam container)
 EXPOSE 4000
 
-# run migrations and start API
-CMD ["npm", "run", "start:prod"]
+CMD ["pm2-runtime", "dist/server.js", "-i", "max"]

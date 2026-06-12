@@ -39,7 +39,11 @@ export class UserRepository {
   }
 
   async delete(id: number): Promise<void> {
-    await prisma.users.delete({ where: { id_user: id } });
+    await prisma.$transaction([
+      prisma.sessions.deleteMany({ where: { id_user: id } }),
+      prisma.user_Missions.deleteMany({ where: { id_user: id } }),
+      prisma.users.delete({ where: { id_user: id } }),
+    ]);
   }
 
   async getLeaderboard(): Promise<LeaderboardEntry[]> {
